@@ -89,16 +89,14 @@ Schools must provide answers to all base inquiries before the AI front desk is a
 
 ### 2. Parent-Facing Chat Interface
 
-#### 2.1 Embed & Access
+#### 2.1 Access
 
-The AI front desk is accessible via:
-- A **standalone chat page** hosted at `mybrightwheel.com/chat/{school-slug}` — sharable in email signatures, websites, and enrollment packets.
-- An **embeddable widget** (JavaScript snippet) for schools that want the chat on their own website.
+The AI front desk is accessible via a **standalone chat page** hosted at `mybrightwheel.com/chat/{school-slug}` — sharable in email signatures, school websites, and enrollment packets.
 
 #### 2.2 Chat Experience
 
-- A chat bubble appears in the lower-right corner of the page on load (or can be pre-opened for the standalone page).
-- The widget header shows the school name, logo, and a status indicator: **"Typically replies instantly"**.
+- A chat bubble appears in the lower-right corner of the page on load.
+- The page header shows the school name, logo, and a status indicator: **"Typically replies instantly"**.
 - The parent types a message in the input bar and submits via Enter or the send button.
 - Responses stream in real time using WebSockets — the parent sees a typing indicator while the AI composes its response, then the message appears token-by-token.
 - Conversation is session-persistent (stored in browser `localStorage`) so the parent can return without losing context.
@@ -199,12 +197,6 @@ Each conversation card shows:
 4. Staff can mark the conversation **Resolved** when complete.
 5. Resolved conversations feed back into the knowledge base improvement workflow (see Section 5.3).
 
-#### 4.5 Push & Email Notifications
-
-In addition to in-app notifications, staff receive:
-- **Push notifications** (browser or mobile) if they have notifications enabled.
-- **Email digest** of unresolved escalations if no action is taken within 1 hour (configurable).
-
 ---
 
 ### 5. Knowledge Base Management
@@ -265,13 +257,13 @@ Admin opens AI Front Desk setup
     → Edits / accepts / deletes rows
     → Completes any unfilled base inquiries manually
   → Confirms and activates
-  → Receives shareable chat link + embed snippet
+  → Receives shareable chat link
 ```
 
 ### Flow B: Parent Asks a Question
 
 ```
-Parent opens chat (standalone page or widget)
+Parent opens chat (standalone page)
   → Types question
   → AI retrieves relevant knowledge base entries
   → AI generates response
@@ -308,17 +300,16 @@ Admin navigates to Settings → AI Front Desk → Knowledge Base
 
 ### Frontend
 - **Framework:** React (TypeScript)
-- **Styling:** Tailwind CSS configured with Brightwheel design tokens (see Design System section)
-- **Real-time:** WebSocket connection via native browser `WebSocket` API or Socket.io client
-- **Chat widget:** Iframe-embeddable, communicates with parent frame via `postMessage`
+- **Component library:** Chakra UI v3, extended with Brightwheel design tokens (see Design System section)
+- **Real-time:** WebSocket connection via native browser `WebSocket` API
 - **State management:** Zustand for operator inbox state; React Query for server state
 
 ### Backend
-- **API:** REST + WebSocket server (Node.js / Fastify or Python / FastAPI)
+- **Framework:** NestJS (TypeScript) — REST API
 - **Auth:** Brightwheel existing session tokens; JWT for parent chat sessions
 - **Database:** PostgreSQL for conversations, Q&A pairs, school settings
 - **Vector store:** pgvector extension for semantic similarity search on knowledge base embeddings
-- **File storage:** S3-compatible object storage for handbook PDFs
+- **File storage:** Render Disk or S3-compatible object storage for handbook PDFs
 
 ### AI Layer
 - **Embedding model:** `text-embedding-3-small` (OpenAI) or equivalent for knowledge base indexing and query matching
@@ -327,9 +318,8 @@ Admin navigates to Settings → AI Front Desk → Knowledge Base
 - **Certainty scoring:** Composite score from cosine similarity of top retrieved chunk + model confidence signal
 
 ### Infrastructure
-- **Hosting:** AWS (ECS Fargate for API, CloudFront for static assets)
-- **Queue:** SQS for async handbook processing jobs
-- **Notifications:** WebSocket push for in-app; AWS SES for email digests; Web Push API for browser notifications
+- **Hosting:** Render — web service for the NestJS API, static site for the React frontend, managed PostgreSQL for the database
+- **Notifications:** WebSocket push for in-app real-time notifications
 
 ---
 
@@ -397,6 +387,8 @@ All UI components must match the Brightwheel design system exactly.
 - **Multi-language support** — English only for initial release.
 - **Voice or phone AI** — Text chat only.
 - **Native mobile app** — Responsive web only; native app integration is a later phase.
+- **Embeddable widget** — No JavaScript snippet for third-party sites; standalone chat page only.
+- **Push & email notifications** — In-app real-time notifications only; no browser push or email digests.
 - **CRM / lead capture integration** — Parent contact info is stored locally; no Salesforce or HubSpot sync.
 - **AI proactively initiating conversations** — The AI only responds to parent-initiated messages.
 - **Cross-school knowledge sharing** — Each school's knowledge base is fully isolated.
@@ -421,18 +413,16 @@ All UI components must match the Brightwheel design system exactly.
 - Knowledge base editor
 - Parent chat interface (standalone page)
 - AI response engine with certainty scoring
-- Basic escalation: email notification to admin
+- Basic escalation: in-app flag on operator inbox
 
 ### Phase 2 — Operator Experience (Weeks 7–10)
-- Operator inbox with real-time notifications
+- Operator inbox with real-time WebSocket notifications
 - In-app popup notifications
 - Staff reply flow with real-time delivery to parent
 - Resolved → knowledge base suggestion loop
 
-### Phase 3 — Polish & Embed (Weeks 11–14)
-- Embeddable widget (JS snippet)
+### Phase 3 — Polish (Weeks 11–14)
 - Handbook re-upload with diff review
-- Push notifications (browser)
 - Handbook version history
 - Analytics dashboard: resolution rate, avg certainty, top questions
 
