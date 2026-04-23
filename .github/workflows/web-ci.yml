@@ -1,7 +1,5 @@
 name: Web CI
 on:
-  push:
-    paths: ['web/**', 'packages/shared/**']
   pull_request:
     paths: ['web/**', 'packages/shared/**']
 

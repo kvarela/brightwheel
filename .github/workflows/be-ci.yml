@@ -1,7 +1,5 @@
 name: BE CI
 on:
-  push:
-    paths: ['be/**', 'packages/shared/**']
   pull_request:
     paths: ['be/**', 'packages/shared/**']
 
