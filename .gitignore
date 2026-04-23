@@ -27,9 +27,12 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+packages/shared/src/**/*.js
+packages/shared/src/**/*.js.map
+packages/shared/src/**/*.d.ts
+be/jest*.js
+be/jest*.js.map
+be/jest*.d.ts
 
 # Coverage
 coverage/
-
-# NestJS
-/backend/dist/
