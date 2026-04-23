@@ -22,7 +22,7 @@ This repository is in the pre-implementation phase. No application code exists y
 - **Framework:** NestJS (TypeScript), REST API
 - **Auth:** Brightwheel session tokens for operators; JWT for parent chat sessions
 - **Database:** PostgreSQL with `pgvector` extension for semantic similarity search
-- **File storage:** Render Disk or S3-compatible storage for handbook PDFs
+- **File storage:** Render Object Storage for handbook PDFs
 
 ### AI Layer
 - **Embedding model:** `text-embedding-3-small` (OpenAI) for knowledge base indexing and query matching
