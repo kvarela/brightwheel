@@ -13,12 +13,16 @@
     "incremental": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictPropertyInitialization": false,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "strictBindCallApply": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@brightwheel/shared": ["../packages/shared/src"]
+    }
   }
 }
