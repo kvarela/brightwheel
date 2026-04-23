@@ -24,5 +24,8 @@
     "paths": {
       "@brightwheel/shared": ["../packages/shared/src"]
     }
-  }
+  },
+  "references": [
+    { "path": "../packages/shared" }
+  ]
 }
