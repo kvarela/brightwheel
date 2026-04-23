@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "workspaces": ["be", "web", "packages/*"],
+  "scripts": {
+    "dev": "concurrently --names web,be --prefix-colors cyan,yellow \"yarn workspace web dev\" \"yarn workspace be start:dev\"",
+    "dev:web": "yarn workspace web dev",
+    "dev:be": "yarn workspace be start:dev",
+    "build": "yarn workspace web build && yarn workspace be build",
+    "test": "yarn workspace be test",
+    "test:e2e": "yarn workspace be test:e2e",
+    "lint": "yarn workspace web lint && yarn workspace be lint",
+    "typecheck": "yarn workspace web typecheck && yarn workspace be typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

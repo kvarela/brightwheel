@@ -89,3 +89,36 @@ All UI must match the Brightwheel design system exactly.
 
 ## v1 Scope Boundaries (Non-Goals)
 English only. Text chat only. No embeddable widget (standalone page at `mybrightwheel.com/chat/{school-slug}` only). No browser push or email notifications (in-app WebSocket only). No cross-school knowledge sharing. AI only responds — never initiates.
+
+---
+
+## Development Standards
+
+### Repository Structure
+This is a yarn workspaces monorepo:
+- `web/` — React + TypeScript + Chakra UI v3 (Vite)
+- `be/` — NestJS + TypeScript + TypeORM + PostgreSQL
+- `packages/shared/` — Shared TypeScript types (DTOs, enums)
+
+### Frontend Standards
+- **One component per file.** Every React component lives in its own `.tsx` file. No barrel-style files that define multiple components.
+- **One interface per file.** Every TypeScript interface lives in its own `.ts` file under a `interfaces/` or `types/` directory co-located with the feature it belongs to.
+- **Type check and lint must pass before pushing.** Run `yarn typecheck` and `yarn lint` from either the `web/` directory or the monorepo root before every push. CI enforces this.
+
+### Backend Standards
+- **Unit tests required for all new features and bug fixes.** Every new service method, controller route, or utility added to the backend must have a corresponding `.spec.ts` unit test. Only external services (OpenAI, Anthropic, S3, etc.) are mocked; the test database is real.
+- **Tests must pass before pushing.** Run `yarn test` from the `be/` directory or the monorepo root before every push. CI enforces this.
+- **Test database:** Unit and integration tests run against `brightwheel_test` via `DATABASE_URL_TEST`. The schema is recreated fresh on each test run via `dropSchema: true` + `synchronize: true` in the TypeORM test config. Never mock the database in tests.
+
+### Running checks locally
+```bash
+# From monorepo root
+yarn typecheck   # type-checks both web and be
+yarn lint        # lints both web and be
+yarn test        # runs be unit tests
+yarn test:e2e    # runs be integration tests
+
+# From individual workspaces
+cd web && yarn typecheck && yarn lint
+cd be  && yarn test && yarn test:e2e
+```

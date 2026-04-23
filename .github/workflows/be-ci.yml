@@ -1,0 +1,45 @@
+name: BE CI
+on:
+  pull_request:
+    paths: ['be/**', 'packages/shared/**']
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: brightwheel_test
+          POSTGRES_USER: bw
+          POSTGRES_PASSWORD: bw
+        ports:
+          - '5433:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - name: Type check
+        run: yarn workspace @brightwheel/be typecheck
+      - name: Lint
+        run: yarn workspace @brightwheel/be lint
+      - name: Unit tests
+        run: yarn workspace @brightwheel/be test
+        env:
+          DATABASE_URL_TEST: postgresql://bw:bw@localhost:5433/brightwheel_test
+          JWT_SECRET: test-secret
+          JWT_EXPIRY: 10y
+          OPENAI_API_KEY: test
+          ANTHROPIC_API_KEY: test
+          RENDER_STORAGE_ENDPOINT: http://localhost
+          RENDER_STORAGE_ACCESS_KEY: test
+          RENDER_STORAGE_SECRET_KEY: test
+          RENDER_STORAGE_BUCKET: test
