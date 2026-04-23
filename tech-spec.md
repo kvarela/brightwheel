@@ -1,12 +1,12 @@
 # Tech Spec: AI Front Desk for Early Education Centers
 
-_Based on [product-spec.md](product-spec.md) — Last updated: April 22, 2026_
+_Based on [product-spec.md](product-spec.md) — Last updated: April 23, 2026_
 
 ---
 
 ## 1. Overview
 
-This document describes the technical architecture for the AI Front Desk feature. The system consists of a NestJS REST API backend, a React/TypeScript frontend, and a PostgreSQL database with the pgvector extension for semantic search. Both applications live in a single pnpm monorepo and deploy to Render.
+This document describes the technical architecture for the AI Front Desk feature. The system consists of a NestJS REST API backend, a React/TypeScript frontend, and a PostgreSQL database with the pgvector extension for semantic search. Both applications live in a single yarn workspaces monorepo and deploy to Render.
 
 ---
 
@@ -14,45 +14,44 @@ This document describes the technical architecture for the AI Front Desk feature
 
 ```
 brightwheel/
-├── apps/
-│   ├── api/                    # NestJS backend
-│   │   ├── src/
-│   │   │   ├── auth/
-│   │   │   ├── schools/
-│   │   │   ├── users/
-│   │   │   ├── knowledge/
-│   │   │   ├── handbooks/
-│   │   │   ├── conversations/
-│   │   │   ├── chat/           # WebSocket gateway
-│   │   │   ├── ai/             # AI service (embeddings + generation)
-│   │   │   ├── storage/        # Render object storage client
-│   │   │   ├── notifications/  # Operator WebSocket gateway
-│   │   │   ├── config/
-│   │   │   ├── database/
-│   │   │   └── main.ts
-│   │   ├── test/
-│   │   │   ├── helpers/        # DB seeding, test factories
-│   │   │   └── *.e2e-spec.ts
-│   │   ├── jest.config.ts
-│   │   ├── jest-e2e.config.ts
-│   │   ├── tsconfig.json
-│   │   └── package.json
-│   └── web/                    # React frontend
-│       ├── src/
-│       │   ├── app/            # Root layout, providers
-│       │   ├── features/
-│       │   │   ├── chat/       # Parent-facing chat page
-│       │   │   ├── onboarding/ # Admin KB setup wizard
-│       │   │   ├── inbox/      # Operator conversation inbox
-│       │   │   └── knowledge/  # KB editor
-│       │   ├── components/     # Shared UI components
-│       │   ├── hooks/
-│       │   ├── lib/            # API client, WS client, query config
-│       │   ├── store/          # Zustand stores
-│       │   ├── theme/          # Chakra UI v3 theme
-│       │   └── main.tsx
-│       ├── tsconfig.json
-│       └── package.json
+├── be/                         # NestJS backend
+│   ├── src/
+│   │   ├── auth/
+│   │   ├── school/
+│   │   ├── user/
+│   │   ├── knowledge/
+│   │   ├── handbook/
+│   │   ├── conversation/
+│   │   ├── chat/               # WebSocket gateway
+│   │   ├── ai/                 # AI service (embeddings + generation)
+│   │   ├── storage/            # Render object storage client
+│   │   ├── notification/       # Operator WebSocket gateway
+│   │   ├── config/
+│   │   ├── database/
+│   │   └── main.ts
+│   ├── test/
+│   │   ├── helpers/            # DB seeding, test factories
+│   │   └── *.e2e-spec.ts
+│   ├── jest.config.ts
+│   ├── jest-e2e.config.ts
+│   ├── tsconfig.json
+│   └── package.json
+├── web/                        # React frontend
+│   ├── src/
+│   │   ├── app/                # Root layout, providers
+│   │   ├── features/
+│   │   │   ├── chat/           # Parent-facing chat page
+│   │   │   ├── onboarding/     # Admin KB setup wizard
+│   │   │   ├── inbox/          # Operator conversation inbox
+│   │   │   └── knowledge/      # KB editor
+│   │   ├── components/         # Shared UI components
+│   │   ├── hooks/
+│   │   ├── lib/                # API client, WS client, query config
+│   │   ├── store/              # Zustand stores
+│   │   ├── theme/              # Chakra UI v3 theme
+│   │   └── main.tsx
+│   ├── tsconfig.json
+│   └── package.json
 ├── packages/
 │   └── shared/                 # Shared TypeScript types
 │       ├── src/
@@ -61,19 +60,20 @@ brightwheel/
 │       └── package.json
 ├── .github/
 │   └── workflows/
-│       ├── api-ci.yml
+│       ├── be-ci.yml
 │       └── web-ci.yml
 ├── render.yaml
-├── pnpm-workspace.yaml
-└── package.json
+├── docker-compose.yml
+└── package.json                # yarn workspaces root
 ```
 
-### Root `pnpm-workspace.yaml`
+### Root `package.json` (yarn workspaces)
 
-```yaml
-packages:
-  - 'apps/*'
-  - 'packages/*'
+```json
+{
+  "private": true,
+  "workspaces": ["be", "web", "packages/*"]
+}
 ```
 
 ---
@@ -87,7 +87,7 @@ packages:
 | Framework       | NestJS (TypeScript)                                            |
 | ORM             | TypeORM                                                        |
 | Database        | PostgreSQL 16 + pgvector extension                             |
-| Auth            | JWT (access + refresh token pattern)                           |
+| Auth            | JWT (single long-lived token, 10-year expiry)                  |
 | Real-time       | `@nestjs/websockets` with `socket.io`                          |
 | File storage    | Render Object Storage (S3-compatible via `@aws-sdk/client-s3`) |
 | AI — embeddings | OpenAI `text-embedding-3-small` (1536 dimensions)              |
@@ -100,26 +100,26 @@ packages:
 AppModule
 ├── ConfigModule          (global, loads .env)
 ├── DatabaseModule        (TypeORM, global)
-├── AuthModule            (JWT strategy, guards, refresh tokens)
-├── SchoolsModule         (school settings, slug lookup)
-├── UsersModule           (admin + staff accounts)
+├── AuthModule            (JWT strategy, guards)
+├── SchoolModule          (school settings, slug lookup)
+├── UserModule            (admin + staff accounts)
 ├── KnowledgeModule       (Q&A CRUD + embedding upsert)
-├── HandbooksModule       (upload, AI extraction, diff, version history)
-├── ConversationsModule   (conversation + message persistence)
+├── HandbookModule        (upload, AI extraction, diff, version history)
+├── ConversationModule    (conversation + message persistence)
 ├── ChatModule            (WebSocket gateway — parent chat)
-├── NotificationsModule   (WebSocket gateway — operator notifications)
+├── NotificationModule    (WebSocket gateway — operator notifications)
 ├── AIModule              (embedding + generation services)
 └── StorageModule         (Render object storage client)
 ```
 
 ### 3.3 Database Schema
 
-All entities use TypeORM decorators. UUID primary keys throughout.
+All entities use TypeORM decorators. UUID primary keys throughout. Table names are singular and set explicitly via `@Entity('name')`.
 
-#### `schools`
+#### `school`
 
 ```typescript
-@Entity()
+@Entity('school')
 export class School {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column({ unique: true }) slug: string
@@ -137,7 +137,7 @@ export class School {
 }
 ```
 
-#### `users`
+#### `user`
 
 ```typescript
 export enum UserRole {
@@ -145,7 +145,7 @@ export enum UserRole {
   STAFF = 'staff',
 }
 
-@Entity()
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column() name: string
@@ -158,7 +158,7 @@ export class User {
 }
 ```
 
-#### `knowledge_entries`
+#### `knowledge_entry`
 
 ```typescript
 export enum KnowledgeSource {
@@ -172,7 +172,7 @@ export enum KnowledgeConfidence {
   LOW = 'low',
 }
 
-@Entity()
+@Entity('knowledge_entry')
 export class KnowledgeEntry {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column() question: string
@@ -193,22 +193,23 @@ export class KnowledgeEntry {
 }
 ```
 
-#### `handbooks`
+#### `handbook`
 
 ```typescript
-@Entity()
+@Entity('handbook')
 export class Handbook {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column() filename: string
   @Column() storageKey: string // object storage path
   @Column({ default: false }) isCurrent: boolean
+  @Column({ type: 'jsonb', nullable: true }) pendingDiff: HandbookDiff | null
   @ManyToOne(() => School, (s) => s.handbooks) school: School
   @Column() schoolId: string
   @CreateDateColumn() createdAt: Date
 }
 ```
 
-#### `conversations`
+#### `conversation`
 
 ```typescript
 export enum ConversationStatus {
@@ -217,7 +218,7 @@ export enum ConversationStatus {
   RESOLVED = 'resolved',
 }
 
-@Entity()
+@Entity('conversation')
 export class Conversation {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column({ nullable: true }) parentName: string
@@ -236,7 +237,7 @@ export class Conversation {
 }
 ```
 
-#### `messages`
+#### `message`
 
 ```typescript
 export enum MessageSender {
@@ -245,7 +246,7 @@ export enum MessageSender {
   STAFF = 'staff',
 }
 
-@Entity()
+@Entity('message')
 export class Message {
   @PrimaryGeneratedColumn('uuid') id: string
   @Column({ type: 'text' }) content: string
@@ -260,47 +261,30 @@ export class Message {
 }
 ```
 
-#### `refresh_tokens`
-
-```typescript
-@Entity()
-export class RefreshToken {
-  @PrimaryGeneratedColumn('uuid') id: string
-  @Column() token: string
-  @ManyToOne(() => User) user: User
-  @Column() userId: string
-  @Column() expiresAt: Date
-  @Column({ default: false }) revoked: boolean
-  @CreateDateColumn() createdAt: Date
-}
-```
-
 ### 3.4 Authentication
 
-Two token classes share the same JWT infrastructure:
+Single JWT token issued at login. No refresh token in MVP.
 
-| Token class            | Subject          | Expiry     | Issued by                  |
-| ---------------------- | ---------------- | ---------- | -------------------------- |
-| Operator access token  | `userId`         | 15 minutes | `POST /auth/login`         |
-| Operator refresh token | `userId`         | 30 days    | `POST /auth/login`         |
-| Parent session token   | `conversationId` | 24 hours   | `POST /chat/:slug/session` |
+| Token class          | Subject          | Expiry | Issued by                  |
+| -------------------- | ---------------- | ------ | -------------------------- |
+| Operator token       | `userId`         | 10y    | `POST /auth/login`         |
+| Parent session token | `conversationId` | 24h    | `POST /chat/:slug/session` |
 
 **Operator login flow:**
 
-1. `POST /auth/login` validates credentials, issues `accessToken` + `refreshToken`.
-2. Access token is sent in `Authorization: Bearer <token>` on each request.
-3. `POST /auth/refresh` accepts a valid refresh token and returns a new access token.
-4. `POST /auth/logout` revokes the refresh token row.
+1. `POST /auth/login` validates email + password and returns a single long-lived `token`.
+2. Token is stored in `localStorage` and sent as `Authorization: Bearer <token>` on every request.
+3. On 401, the client clears the token and redirects to `/login`.
 
 **Parent chat flow:**
 
-1. `POST /chat/:slug/session` creates a `Conversation` row and returns a short-lived JWT containing `conversationId` and `schoolId`.
+1. `POST /chat/:slug/session` creates a `Conversation` row and issues a 24-hour JWT containing `conversationId` and `schoolId`.
 2. This token authenticates the parent's WebSocket connection and any REST calls to the chat namespace.
 3. No user account is created; the parent is anonymous unless they volunteer name/email.
 
 **Guards:**
 
-- `JwtAuthGuard` — validates operator access tokens (applied globally, overridden with `@Public()` decorator for public routes).
+- `JwtAuthGuard` — validates operator tokens (applied globally, overridden with `@Public()` decorator for public routes).
 - `ParentSessionGuard` — validates parent session tokens (applied to chat WebSocket gateway and `GET /chat/:slug`).
 - `RolesGuard` — checks `UserRole` where needed (e.g., admin-only KB edits).
 
@@ -310,12 +294,10 @@ All operator endpoints require a valid operator JWT. All responses follow `{ dat
 
 #### Auth
 
-| Method | Path            | Auth     | Description                                |
-| ------ | --------------- | -------- | ------------------------------------------ |
-| POST   | `/auth/login`   | Public   | Email + password → access + refresh tokens |
-| POST   | `/auth/refresh` | Public   | Refresh token → new access token           |
-| POST   | `/auth/logout`  | Operator | Revoke refresh token                       |
-| GET    | `/auth/me`      | Operator | Current user info                          |
+| Method | Path          | Auth     | Description                      |
+| ------ | ------------- | -------- | -------------------------------- |
+| POST   | `/auth/login` | Public   | Email + password → operator token |
+| GET    | `/auth/me`    | Operator | Current user info                |
 
 #### Schools
 
@@ -395,7 +377,7 @@ On connect to `/notifications`, the server joins the socket to a `school:{school
 
 - Calls `text-embedding-3-small` via the OpenAI SDK.
 - Triggered on: knowledge entry create, knowledge entry answer update.
-- Stored in `knowledge_entries.embedding` (pgvector `vector(1536)` column).
+- Stored in `knowledge_entry.embedding` (pgvector `vector(1536)` column).
 
 #### Semantic Search
 
@@ -405,7 +387,7 @@ On connect to `/notifications`, the server joins the socket to a `school:{school
 - Runs pgvector cosine similarity query:
   ```sql
   SELECT *, 1 - (embedding <=> $1) AS similarity
-  FROM knowledge_entries
+  FROM knowledge_entry
   WHERE school_id = $2 AND is_active = true
   ORDER BY embedding <=> $1
   LIMIT $3;
@@ -434,7 +416,7 @@ On connect to `/notifications`, the server joins the socket to a `school:{school
    - Answers to each of the 12 required base inquiries.
    - Any additional distinct topic Q&A pairs.
    - Source excerpt and confidence (high/medium/low) for each.
-4. Returns structured `ExtractedQA[]` — stored as a pending diff, not directly in `knowledge_entries`.
+4. Returns structured `ExtractedQA[]` — stored as `handbook.pendingDiff` (JSONB), not directly in `knowledge_entry`.
 
 ### 3.8 File Storage
 
@@ -458,31 +440,30 @@ Max file size enforced at the NestJS `FileInterceptor` layer (50 MB).
 
 ### 4.1 Stack
 
-| Concern           | Choice                                                                        |
-| ----------------- | ----------------------------------------------------------------------------- |
-| Framework         | React 18 + TypeScript                                                         |
-| Build tool        | Vite                                                                          |
-| Component library | Chakra UI v3                                                                  |
-| Server state      | TanStack Query (React Query) v5                                               |
-| Client state      | Zustand                                                                       |
-| Routing           | React Router v6                                                               |
-| WebSocket         | `socket.io-client`                                                            |
-| Forms             | React Hook Form + Zod                                                         |
-| HTTP client       | Axios (configured instance with interceptor for auth headers + token refresh) |
+| Concern           | Choice                                                              |
+| ----------------- | ------------------------------------------------------------------- |
+| Framework         | React 18 + TypeScript                                               |
+| Build tool        | Vite                                                                |
+| Component library | Chakra UI v3                                                        |
+| Server state      | TanStack Query (React Query) v5                                     |
+| Client state      | Zustand                                                             |
+| Routing           | React Router v6                                                     |
+| WebSocket         | `socket.io-client`                                                  |
+| Forms             | React Hook Form + Zod                                               |
+| HTTP client       | Axios (configured instance with request interceptor for auth token) |
 
 ### 4.2 Routes
 
 ```
-/                          → redirect to /login
-/login                     → operator login
-/app/                      → authenticated operator shell
-  /app/onboarding          → KB setup wizard
-  /app/inbox               → conversation inbox
-  /app/inbox/:id           → single conversation thread
-  /app/knowledge           → KB editor
-  /app/settings            → school settings (escalation threshold, etc.)
-  /app/handbooks           → handbook management
-/chat/:slug                → parent-facing chat page (public)
+/                  → redirect to /login
+/login             → operator login
+/onboarding        → KB setup wizard (authenticated)
+/inbox             → conversation inbox (authenticated)
+/inbox/:id         → single conversation thread (authenticated)
+/knowledge         → KB editor (authenticated)
+/settings          → school settings — escalation threshold, etc. (authenticated)
+/handbooks         → handbook management (authenticated)
+/chat/:slug        → parent-facing chat page (public)
 ```
 
 ### 4.3 Feature Modules
@@ -587,8 +568,8 @@ export const system = createSystem(defaultConfig, config)
 Single Axios instance at `src/lib/apiClient.ts`:
 
 - Base URL from `VITE_API_URL` env var.
-- Request interceptor: attaches `Authorization: Bearer <accessToken>` from local storage.
-- Response interceptor: on 401, attempts silent refresh via `POST /auth/refresh`, retries original request once, then redirects to `/login`.
+- Request interceptor: attaches `Authorization: Bearer <token>` from `localStorage`.
+- Response interceptor: on 401, clears the token and redirects to `/login`.
 
 ---
 
@@ -598,25 +579,23 @@ Single Axios instance at `src/lib/apiClient.ts`:
 
 Defined in `render.yaml` (Render IaC):
 
-| Service | Type                 | Build command             | Start command       |
-| ------- | -------------------- | ------------------------- | ------------------- |
-| `api`   | Web Service          | `pnpm --filter api build` | `node dist/main.js` |
-| `web`   | Static Site          | `pnpm --filter web build` | —                   |
-| `db`    | PostgreSQL (managed) | —                         | —                   |
+| Service | Type                 | Build command              | Start command       |
+| ------- | -------------------- | -------------------------- | ------------------- |
+| `api`   | Web Service          | `yarn workspace be build`  | `node dist/main.js` |
+| `web`   | Static Site          | `yarn workspace web build` | —                   |
+| `db`    | PostgreSQL (managed) | —                          | —                   |
 
 Object Storage: one Render Object Storage bucket (`brightwheel-handbooks`). Credentials injected as env vars into the `api` service.
 
 ### 5.2 Environment Variables
 
-#### API (`apps/api/.env`)
+#### BE (`be/.env`)
 
 ```
 DATABASE_URL=postgresql://...
 DATABASE_URL_TEST=postgresql://...  # separate test DB
-JWT_ACCESS_SECRET=
-JWT_REFRESH_SECRET=
-JWT_ACCESS_EXPIRY=15m
-JWT_REFRESH_EXPIRY=30d
+JWT_SECRET=
+JWT_EXPIRY=10y
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 RENDER_STORAGE_ENDPOINT=https://...
@@ -627,7 +606,7 @@ PORT=3000
 NODE_ENV=development
 ```
 
-#### Web (`apps/web/.env`)
+#### Web (`web/.env`)
 
 ```
 VITE_API_URL=http://localhost:3000
@@ -667,14 +646,14 @@ services:
 ### 6.1 Philosophy
 
 - Tests run against a **real PostgreSQL test database** (`DATABASE_URL_TEST`).
-- Only **external services** are mocked: OpenAI SDK, Anthropic SDK, and the Render Storage client (`StorageService`).
+- Only **external services** are mocked: OpenAI SDK, Anthropic SDK, and `StorageService`. `ConfigService` is never mocked — tests load real config from the test environment.
 - No in-memory databases; no mocked TypeORM repositories.
 - Each test suite uses a shared test app instance with DB seeding/teardown via helper utilities.
 
 ### 6.2 Test Structure
 
 ```
-apps/api/
+be/
 ├── src/
 │   └── **/*.spec.ts        # Unit tests for pure logic (certainty scoring, text parsing)
 └── test/
@@ -707,7 +686,7 @@ describe('KnowledgeModule (e2e)', () => {
 
   it('POST /schools/:id/knowledge creates entry and generates embedding', async () => {
     const { school, token } = await seedSchoolWithAdmin(db)
-    // OpenAI embed is mocked; returns a fixed 1536-dim vector
+    // AIService.embed is mocked; returns a fixed 1536-dim vector
     const res = await request(app.getHttpServer())
       .post(`/schools/${school.id}/knowledge`)
       .set('Authorization', `Bearer ${token}`)
@@ -740,7 +719,7 @@ StorageService.prototype.upload = jest.fn().mockResolvedValue('https://storage/t
 ### 6.5 Jest Configuration
 
 ```typescript
-// apps/api/jest.config.ts
+// be/jest.config.ts
 export default {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: 'src',
@@ -749,7 +728,7 @@ export default {
   coverageDirectory: '../coverage',
 }
 
-// apps/api/jest-e2e.config.ts
+// be/jest-e2e.config.ts
 export default {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
@@ -763,17 +742,17 @@ export default {
 
 ## 7. CI/CD
 
-### 7.1 Backend CI (`.github/workflows/api-ci.yml`)
+### 7.1 Backend CI (`.github/workflows/be-ci.yml`)
 
-Triggers on push/PR affecting `apps/api/**` or `packages/shared/**`.
+Triggers on push/PR affecting `be/**` or `packages/shared/**`.
 
 ```yaml
-name: API CI
+name: BE CI
 on:
   push:
-    paths: ['apps/api/**', 'packages/shared/**']
+    paths: ['be/**', 'packages/shared/**']
   pull_request:
-    paths: ['apps/api/**', 'packages/shared/**']
+    paths: ['be/**', 'packages/shared/**']
 
 jobs:
   ci:
@@ -793,19 +772,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
-        with: { node-version: '20', cache: 'pnpm' }
-      - run: pnpm install --frozen-lockfile
+        with: { node-version: '20', cache: 'yarn' }
+      - run: yarn install --frozen-lockfile
       - name: Type check
-        run: pnpm --filter api tsc --noEmit
+        run: yarn workspace be tsc --noEmit
       - name: Lint
-        run: pnpm --filter api eslint src --ext .ts
+        run: yarn workspace be eslint src --ext .ts
       - name: Run tests
         env:
           DATABASE_URL_TEST: postgresql://bw:bw@localhost:5433/brightwheel_test
-          JWT_ACCESS_SECRET: test-secret
-          JWT_REFRESH_SECRET: test-refresh-secret
+          JWT_SECRET: test-secret
+          JWT_EXPIRY: 10y
           # External services are mocked; these are placeholders
           OPENAI_API_KEY: test
           ANTHROPIC_API_KEY: test
@@ -813,34 +791,33 @@ jobs:
           RENDER_STORAGE_ACCESS_KEY: test
           RENDER_STORAGE_SECRET_KEY: test
           RENDER_STORAGE_BUCKET: test
-        run: pnpm --filter api test:e2e && pnpm --filter api test
+        run: yarn workspace be test:e2e && yarn workspace be test
 ```
 
 ### 7.2 Frontend CI (`.github/workflows/web-ci.yml`)
 
-Triggers on push/PR affecting `apps/web/**` or `packages/shared/**`.
+Triggers on push/PR affecting `web/**` or `packages/shared/**`.
 
 ```yaml
 name: Web CI
 on:
   push:
-    paths: ['apps/web/**', 'packages/shared/**']
+    paths: ['web/**', 'packages/shared/**']
   pull_request:
-    paths: ['apps/web/**', 'packages/shared/**']
+    paths: ['web/**', 'packages/shared/**']
 
 jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
       - uses: actions/setup-node@v4
-        with: { node-version: '20', cache: 'pnpm' }
-      - run: pnpm install --frozen-lockfile
+        with: { node-version: '20', cache: 'yarn' }
+      - run: yarn install --frozen-lockfile
       - name: Type check
-        run: pnpm --filter web tsc --noEmit
+        run: yarn workspace web tsc --noEmit
       - name: Lint
-        run: pnpm --filter web eslint src --ext .ts,.tsx
+        run: yarn workspace web eslint src --ext .ts,.tsx
 ```
 
 ---
@@ -870,11 +847,11 @@ TypeORM does not natively support the `vector` column type. Use a custom migrati
 
 ### Handbook Diff Storage
 
-When a new handbook is uploaded and extracted, the proposed changes are stored as a `handbook_diffs` JSON column on the `Handbook` entity (not yet in `knowledge_entries`). Once the admin confirms, `HandbooksService.applyDiff()` executes the accepted inserts/updates/deletes atomically within a TypeORM transaction.
+When a new handbook is uploaded and extracted, the proposed changes are stored as `handbook.pendingDiff` (JSONB) — not yet written to `knowledge_entry`. Once the admin confirms, `HandbookService.applyDiff()` executes the accepted inserts/updates/deletes atomically within a TypeORM transaction.
 
 ### Escalation Notification Delivery
 
-When `AIService.generateResponse()` returns a score below threshold, `ConversationsService.flagForEscalation()`:
+When `AIService.generateResponse()` returns a score below threshold, `ConversationService.flagForEscalation()`:
 
 1. Updates `conversation.status = NEEDS_ATTENTION`.
 2. Emits `conversation:escalated` to the `school:{schoolId}` socket.io room in the `/notifications` namespace.
@@ -882,10 +859,10 @@ When `AIService.generateResponse()` returns a score below threshold, `Conversati
 
 ---
 
-## 9. Future concerns
+## 9. Future Concerns
 
 - **Rate limiting:** Add `@nestjs/throttler` to parent-facing endpoints to prevent abuse.
 - **PDF text extraction accuracy:** `pdf-parse` may struggle with image-heavy or scanned PDFs. Evaluate fallback to OCR (e.g., Tesseract) or Anthropic's vision input.
 - **Handbook file MIME validation:** Enforce PDF/DOCX/TXT server-side; do not rely solely on file extension.
-- **pgvector index:** Add `ivfflat` or `hnsw` index on `knowledge_entries.embedding` once data volume warrants it (> ~1000 entries per school). Start without an index.
+- **pgvector index:** Add `ivfflat` or `hnsw` index on `knowledge_entry.embedding` once data volume warrants it (> ~1000 entries per school). Start without an index.
 - **Token budget for generation:** Large knowledge bases could overflow context. Implement a max token guard on the retrieved context passed to the Anthropic model.
