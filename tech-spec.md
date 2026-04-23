@@ -1,6 +1,6 @@
 # Tech Spec: AI Front Desk for Early Education Centers
 
-*Based on [product-spec.md](product-spec.md) — Last updated: April 22, 2026*
+_Based on [product-spec.md](product-spec.md) — Last updated: April 22, 2026_
 
 ---
 
@@ -72,8 +72,8 @@ brightwheel/
 
 ```yaml
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
 ```
 
 ---
@@ -82,17 +82,17 @@ packages:
 
 ### 3.1 Stack
 
-| Concern | Choice |
-|---|---|
-| Framework | NestJS (TypeScript) |
-| ORM | TypeORM |
-| Database | PostgreSQL 16 + pgvector extension |
-| Auth | JWT (access + refresh token pattern) |
-| Real-time | `@nestjs/websockets` with `socket.io` |
-| File storage | Render Object Storage (S3-compatible via `@aws-sdk/client-s3`) |
-| AI — embeddings | OpenAI `text-embedding-3-small` (1536 dimensions) |
-| AI — generation | Anthropic `claude-sonnet-4-6` |
-| Testing | Jest + Supertest, real test DB |
+| Concern         | Choice                                                         |
+| --------------- | -------------------------------------------------------------- |
+| Framework       | NestJS (TypeScript)                                            |
+| ORM             | TypeORM                                                        |
+| Database        | PostgreSQL 16 + pgvector extension                             |
+| Auth            | JWT (access + refresh token pattern)                           |
+| Real-time       | `@nestjs/websockets` with `socket.io`                          |
+| File storage    | Render Object Storage (S3-compatible via `@aws-sdk/client-s3`) |
+| AI — embeddings | OpenAI `text-embedding-3-small` (1536 dimensions)              |
+| AI — generation | Anthropic `claude-sonnet-4-6`                                  |
+| Testing         | Jest + Supertest, real test DB                                 |
 
 ### 3.2 NestJS Module Map
 
@@ -121,63 +121,75 @@ All entities use TypeORM decorators. UUID primary keys throughout.
 ```typescript
 @Entity()
 export class School {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ unique: true }) slug: string;
-  @Column() name: string;
-  @Column({ nullable: true }) logoUrl: string;
-  @Column({ type: 'float', default: 0.8 }) escalationThreshold: number;
-  @Column({ default: false }) isActive: boolean;  // true once KB complete
-  @CreateDateColumn() createdAt: Date;
-  @UpdateDateColumn() updatedAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column({ unique: true }) slug: string
+  @Column() name: string
+  @Column({ nullable: true }) logoUrl: string
+  @Column({ type: 'float', default: 0.8 }) escalationThreshold: number
+  @Column({ default: false }) isActive: boolean // true once KB complete
+  @CreateDateColumn() createdAt: Date
+  @UpdateDateColumn() updatedAt: Date
 
-  @OneToMany(() => User, u => u.school) users: User[];
-  @OneToMany(() => KnowledgeEntry, k => k.school) knowledgeEntries: KnowledgeEntry[];
-  @OneToMany(() => Handbook, h => h.school) handbooks: Handbook[];
-  @OneToMany(() => Conversation, c => c.school) conversations: Conversation[];
+  @OneToMany(() => User, (u) => u.school) users: User[]
+  @OneToMany(() => KnowledgeEntry, (k) => k.school) knowledgeEntries: KnowledgeEntry[]
+  @OneToMany(() => Handbook, (h) => h.school) handbooks: Handbook[]
+  @OneToMany(() => Conversation, (c) => c.school) conversations: Conversation[]
 }
 ```
 
 #### `users`
 
 ```typescript
-export enum UserRole { ADMIN = 'admin', STAFF = 'staff' }
+export enum UserRole {
+  ADMIN = 'admin',
+  STAFF = 'staff',
+}
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() name: string;
-  @Column({ unique: true }) email: string;
-  @Column() passwordHash: string;
-  @Column({ type: 'enum', enum: UserRole }) role: UserRole;
-  @ManyToOne(() => School, s => s.users) school: School;
-  @Column() schoolId: string;
-  @CreateDateColumn() createdAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column() name: string
+  @Column({ unique: true }) email: string
+  @Column() passwordHash: string
+  @Column({ type: 'enum', enum: UserRole }) role: UserRole
+  @ManyToOne(() => School, (s) => s.users) school: School
+  @Column() schoolId: string
+  @CreateDateColumn() createdAt: Date
 }
 ```
 
 #### `knowledge_entries`
 
 ```typescript
-export enum KnowledgeSource { HANDBOOK = 'handbook', MANUAL = 'manual', AI_GENERATED = 'ai_generated' }
-export enum KnowledgeConfidence { HIGH = 'high', MEDIUM = 'medium', LOW = 'low' }
+export enum KnowledgeSource {
+  HANDBOOK = 'handbook',
+  MANUAL = 'manual',
+  AI_GENERATED = 'ai_generated',
+}
+export enum KnowledgeConfidence {
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low',
+}
 
 @Entity()
 export class KnowledgeEntry {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() question: string;
-  @Column({ type: 'text' }) answer: string;
-  @Column({ type: 'enum', enum: KnowledgeSource }) source: KnowledgeSource;
-  @Column({ nullable: true }) sourceExcerpt: string;
-  @Column({ type: 'enum', enum: KnowledgeConfidence, nullable: true }) confidence: KnowledgeConfidence;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column() question: string
+  @Column({ type: 'text' }) answer: string
+  @Column({ type: 'enum', enum: KnowledgeSource }) source: KnowledgeSource
+  @Column({ nullable: true }) sourceExcerpt: string
+  @Column({ type: 'enum', enum: KnowledgeConfidence, nullable: true })
+  confidence: KnowledgeConfidence
   // pgvector column — 1536 dims for text-embedding-3-small
-  @Column({ type: 'vector', length: 1536, nullable: true }) embedding: number[];
-  @Column({ default: true }) isActive: boolean;
-  @ManyToOne(() => School, s => s.knowledgeEntries) school: School;
-  @Column() schoolId: string;
-  @ManyToOne(() => Handbook, { nullable: true }) handbook: Handbook;
-  @Column({ nullable: true }) handbookId: string;
-  @UpdateDateColumn() updatedAt: Date;
-  @CreateDateColumn() createdAt: Date;
+  @Column({ type: 'vector', length: 1536, nullable: true }) embedding: number[]
+  @Column({ default: true }) isActive: boolean
+  @ManyToOne(() => School, (s) => s.knowledgeEntries) school: School
+  @Column() schoolId: string
+  @ManyToOne(() => Handbook, { nullable: true }) handbook: Handbook
+  @Column({ nullable: true }) handbookId: string
+  @UpdateDateColumn() updatedAt: Date
+  @CreateDateColumn() createdAt: Date
 }
 ```
 
@@ -186,13 +198,13 @@ export class KnowledgeEntry {
 ```typescript
 @Entity()
 export class Handbook {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() filename: string;
-  @Column() storageKey: string;   // object storage path
-  @Column({ default: false }) isCurrent: boolean;
-  @ManyToOne(() => School, s => s.handbooks) school: School;
-  @Column() schoolId: string;
-  @CreateDateColumn() createdAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column() filename: string
+  @Column() storageKey: string // object storage path
+  @Column({ default: false }) isCurrent: boolean
+  @ManyToOne(() => School, (s) => s.handbooks) school: School
+  @Column() schoolId: string
+  @CreateDateColumn() createdAt: Date
 }
 ```
 
@@ -207,40 +219,44 @@ export enum ConversationStatus {
 
 @Entity()
 export class Conversation {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ nullable: true }) parentName: string;
-  @Column({ nullable: true }) parentEmail: string;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column({ nullable: true }) parentName: string
+  @Column({ nullable: true }) parentEmail: string
   @Column({ type: 'enum', enum: ConversationStatus, default: ConversationStatus.IN_PROGRESS })
-  status: ConversationStatus;
-  @Column({ type: 'float', nullable: true }) lastCertaintyScore: number;
-  @ManyToOne(() => School, s => s.conversations) school: School;
-  @Column() schoolId: string;
-  @ManyToOne(() => User, { nullable: true }) assignedTo: User;
-  @Column({ nullable: true }) assignedToId: string;
-  @CreateDateColumn() createdAt: Date;
-  @UpdateDateColumn() updatedAt: Date;
+  status: ConversationStatus
+  @Column({ type: 'float', nullable: true }) lastCertaintyScore: number
+  @ManyToOne(() => School, (s) => s.conversations) school: School
+  @Column() schoolId: string
+  @ManyToOne(() => User, { nullable: true }) assignedTo: User
+  @Column({ nullable: true }) assignedToId: string
+  @CreateDateColumn() createdAt: Date
+  @UpdateDateColumn() updatedAt: Date
 
-  @OneToMany(() => Message, m => m.conversation) messages: Message[];
+  @OneToMany(() => Message, (m) => m.conversation) messages: Message[]
 }
 ```
 
 #### `messages`
 
 ```typescript
-export enum MessageSender { PARENT = 'parent', AI = 'ai', STAFF = 'staff' }
+export enum MessageSender {
+  PARENT = 'parent',
+  AI = 'ai',
+  STAFF = 'staff',
+}
 
 @Entity()
 export class Message {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ type: 'text' }) content: string;
-  @Column({ type: 'enum', enum: MessageSender }) sender: MessageSender;
-  @Column({ type: 'float', nullable: true }) certaintyScore: number;
-  @Column({ default: false }) wasEscalated: boolean;
-  @ManyToOne(() => Conversation, c => c.messages) conversation: Conversation;
-  @Column() conversationId: string;
-  @ManyToOne(() => User, { nullable: true }) staffSender: User;
-  @Column({ nullable: true }) staffSenderId: string;
-  @CreateDateColumn() createdAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column({ type: 'text' }) content: string
+  @Column({ type: 'enum', enum: MessageSender }) sender: MessageSender
+  @Column({ type: 'float', nullable: true }) certaintyScore: number
+  @Column({ default: false }) wasEscalated: boolean
+  @ManyToOne(() => Conversation, (c) => c.messages) conversation: Conversation
+  @Column() conversationId: string
+  @ManyToOne(() => User, { nullable: true }) staffSender: User
+  @Column({ nullable: true }) staffSenderId: string
+  @CreateDateColumn() createdAt: Date
 }
 ```
 
@@ -249,13 +265,13 @@ export class Message {
 ```typescript
 @Entity()
 export class RefreshToken {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column() token: string;
-  @ManyToOne(() => User) user: User;
-  @Column() userId: string;
-  @Column() expiresAt: Date;
-  @Column({ default: false }) revoked: boolean;
-  @CreateDateColumn() createdAt: Date;
+  @PrimaryGeneratedColumn('uuid') id: string
+  @Column() token: string
+  @ManyToOne(() => User) user: User
+  @Column() userId: string
+  @Column() expiresAt: Date
+  @Column({ default: false }) revoked: boolean
+  @CreateDateColumn() createdAt: Date
 }
 ```
 
@@ -263,11 +279,11 @@ export class RefreshToken {
 
 Two token classes share the same JWT infrastructure:
 
-| Token class | Subject | Expiry | Issued by |
-|---|---|---|---|
-| Operator access token | `userId` | 15 minutes | `POST /auth/login` |
-| Operator refresh token | `userId` | 30 days | `POST /auth/login` |
-| Parent session token | `conversationId` | 24 hours | `POST /chat/:slug/session` |
+| Token class            | Subject          | Expiry     | Issued by                  |
+| ---------------------- | ---------------- | ---------- | -------------------------- |
+| Operator access token  | `userId`         | 15 minutes | `POST /auth/login`         |
+| Operator refresh token | `userId`         | 30 days    | `POST /auth/login`         |
+| Parent session token   | `conversationId` | 24 hours   | `POST /chat/:slug/session` |
 
 **Operator login flow:**
 
@@ -294,58 +310,58 @@ All operator endpoints require a valid operator JWT. All responses follow `{ dat
 
 #### Auth
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/auth/login` | Public | Email + password → access + refresh tokens |
-| POST | `/auth/refresh` | Public | Refresh token → new access token |
-| POST | `/auth/logout` | Operator | Revoke refresh token |
-| GET | `/auth/me` | Operator | Current user info |
+| Method | Path            | Auth     | Description                                |
+| ------ | --------------- | -------- | ------------------------------------------ |
+| POST   | `/auth/login`   | Public   | Email + password → access + refresh tokens |
+| POST   | `/auth/refresh` | Public   | Refresh token → new access token           |
+| POST   | `/auth/logout`  | Operator | Revoke refresh token                       |
+| GET    | `/auth/me`      | Operator | Current user info                          |
 
 #### Schools
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/schools/:id` | Operator | School details |
-| PATCH | `/schools/:id` | Admin | Update name, logo, escalation threshold |
-| GET | `/schools/:id/onboarding-status` | Admin | Which base inquiries still need answers |
+| Method | Path                             | Auth     | Description                             |
+| ------ | -------------------------------- | -------- | --------------------------------------- |
+| GET    | `/schools/:id`                   | Operator | School details                          |
+| PATCH  | `/schools/:id`                   | Admin    | Update name, logo, escalation threshold |
+| GET    | `/schools/:id/onboarding-status` | Admin    | Which base inquiries still need answers |
 
 #### Knowledge Base
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/schools/:id/knowledge` | Operator | List entries (supports `?source=`, `?q=`) |
-| POST | `/schools/:id/knowledge` | Admin | Create entry (triggers embedding generation) |
-| PATCH | `/schools/:id/knowledge/:entryId` | Admin | Update entry (re-embeds on answer change) |
-| DELETE | `/schools/:id/knowledge/:entryId` | Admin | Soft-delete entry |
+| Method | Path                              | Auth     | Description                                  |
+| ------ | --------------------------------- | -------- | -------------------------------------------- |
+| GET    | `/schools/:id/knowledge`          | Operator | List entries (supports `?source=`, `?q=`)    |
+| POST   | `/schools/:id/knowledge`          | Admin    | Create entry (triggers embedding generation) |
+| PATCH  | `/schools/:id/knowledge/:entryId` | Admin    | Update entry (re-embeds on answer change)    |
+| DELETE | `/schools/:id/knowledge/:entryId` | Admin    | Soft-delete entry                            |
 
 #### Handbooks
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/schools/:id/handbooks` | Admin | List handbook versions |
-| POST | `/schools/:id/handbooks` | Admin | Upload new handbook (multipart/form-data) |
-| POST | `/schools/:id/handbooks/:handbookId/extract` | Admin | Trigger AI extraction job |
-| GET | `/schools/:id/handbooks/:handbookId/diff` | Admin | Get proposed KB changes vs. current |
-| POST | `/schools/:id/handbooks/:handbookId/confirm` | Admin | Accept/reject diff items and apply |
-| POST | `/schools/:id/handbooks/:handbookId/restore` | Admin | Restore a historical version as current |
+| Method | Path                                         | Auth  | Description                               |
+| ------ | -------------------------------------------- | ----- | ----------------------------------------- |
+| GET    | `/schools/:id/handbooks`                     | Admin | List handbook versions                    |
+| POST   | `/schools/:id/handbooks`                     | Admin | Upload new handbook (multipart/form-data) |
+| POST   | `/schools/:id/handbooks/:handbookId/extract` | Admin | Trigger AI extraction job                 |
+| GET    | `/schools/:id/handbooks/:handbookId/diff`    | Admin | Get proposed KB changes vs. current       |
+| POST   | `/schools/:id/handbooks/:handbookId/confirm` | Admin | Accept/reject diff items and apply        |
+| POST   | `/schools/:id/handbooks/:handbookId/restore` | Admin | Restore a historical version as current   |
 
 #### Conversations
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/schools/:id/conversations` | Operator | List conversations (supports `?status=`) |
-| GET | `/schools/:id/conversations/:conversationId` | Operator | Full conversation with messages |
-| PATCH | `/schools/:id/conversations/:conversationId` | Operator | Assign staff member, update status |
-| POST | `/schools/:id/conversations/:conversationId/resolve` | Operator | Mark resolved |
-| POST | `/schools/:id/conversations/:conversationId/knowledge-suggestion` | Operator | Accept escalation Q&A into KB |
+| Method | Path                                                              | Auth     | Description                              |
+| ------ | ----------------------------------------------------------------- | -------- | ---------------------------------------- |
+| GET    | `/schools/:id/conversations`                                      | Operator | List conversations (supports `?status=`) |
+| GET    | `/schools/:id/conversations/:conversationId`                      | Operator | Full conversation with messages          |
+| PATCH  | `/schools/:id/conversations/:conversationId`                      | Operator | Assign staff member, update status       |
+| POST   | `/schools/:id/conversations/:conversationId/resolve`              | Operator | Mark resolved                            |
+| POST   | `/schools/:id/conversations/:conversationId/knowledge-suggestion` | Operator | Accept escalation Q&A into KB            |
 
 #### Parent Chat (Public REST)
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| GET | `/chat/:slug` | Public | School display info for chat page |
-| POST | `/chat/:slug/session` | Public | Create conversation + issue parent JWT |
-| PATCH | `/chat/:slug/session/identity` | Parent session | Update parent name/email |
+| Method | Path                           | Auth           | Description                            |
+| ------ | ------------------------------ | -------------- | -------------------------------------- |
+| GET    | `/chat/:slug`                  | Public         | School display info for chat page      |
+| POST   | `/chat/:slug/session`          | Public         | Create conversation + issue parent JWT |
+| PATCH  | `/chat/:slug/session/identity` | Parent session | Update parent name/email               |
 
 ### 3.6 WebSocket Events
 
@@ -353,21 +369,21 @@ Two `socket.io` namespaces. Both require a JWT in the connection handshake `auth
 
 #### `/chat` — Parent ↔ AI
 
-| Event | Direction | Payload |
-|---|---|---|
-| `message:send` | Client → Server | `{ content: string }` |
-| `message:token` | Server → Client | `{ token: string, messageId: string }` — streamed chunks |
+| Event              | Direction       | Payload                                                                |
+| ------------------ | --------------- | ---------------------------------------------------------------------- |
+| `message:send`     | Client → Server | `{ content: string }`                                                  |
+| `message:token`    | Server → Client | `{ token: string, messageId: string }` — streamed chunks               |
 | `message:complete` | Server → Client | `{ messageId: string, certaintyScore: number, wasEscalated: boolean }` |
-| `message:error` | Server → Client | `{ error: string }` |
-| `staff:reply` | Server → Client | `{ message: Message }` — when staff sends a reply |
+| `message:error`    | Server → Client | `{ error: string }`                                                    |
+| `staff:reply`      | Server → Client | `{ message: Message }` — when staff sends a reply                      |
 
 #### `/notifications` — Operator inbox
 
-| Event | Direction | Payload |
-|---|---|---|
-| `conversation:escalated` | Server → Client | `{ conversation: ConversationSummary }` |
-| `conversation:updated` | Server → Client | `{ conversationId: string, status: ConversationStatus }` |
-| `conversation:staff_reply` | Server → Client | `{ conversationId: string, message: Message }` |
+| Event                      | Direction       | Payload                                                  |
+| -------------------------- | --------------- | -------------------------------------------------------- |
+| `conversation:escalated`   | Server → Client | `{ conversation: ConversationSummary }`                  |
+| `conversation:updated`     | Server → Client | `{ conversationId: string, status: ConversationStatus }` |
+| `conversation:staff_reply` | Server → Client | `{ conversationId: string, message: Message }`           |
 
 On connect to `/notifications`, the server joins the socket to a `school:{schoolId}` room so broadcasts are scoped per school.
 
@@ -426,9 +442,9 @@ On connect to `/notifications`, the server joins the socket to a `school:{school
 
 ```typescript
 interface StorageService {
-  upload(key: string, buffer: Buffer, contentType: string): Promise<string>; // returns public URL
-  download(key: string): Promise<Buffer>;
-  delete(key: string): Promise<void>;
+  upload(key: string, buffer: Buffer, contentType: string): Promise<string> // returns public URL
+  download(key: string): Promise<Buffer>
+  delete(key: string): Promise<void>
 }
 ```
 
@@ -442,17 +458,17 @@ Max file size enforced at the NestJS `FileInterceptor` layer (50 MB).
 
 ### 4.1 Stack
 
-| Concern | Choice |
-|---|---|
-| Framework | React 18 + TypeScript |
-| Build tool | Vite |
-| Component library | Chakra UI v3 |
-| Server state | TanStack Query (React Query) v5 |
-| Client state | Zustand |
-| Routing | React Router v6 |
-| WebSocket | `socket.io-client` |
-| Forms | React Hook Form + Zod |
-| HTTP client | Axios (configured instance with interceptor for auth headers + token refresh) |
+| Concern           | Choice                                                                        |
+| ----------------- | ----------------------------------------------------------------------------- |
+| Framework         | React 18 + TypeScript                                                         |
+| Build tool        | Vite                                                                          |
+| Component library | Chakra UI v3                                                                  |
+| Server state      | TanStack Query (React Query) v5                                               |
+| Client state      | Zustand                                                                       |
+| Routing           | React Router v6                                                               |
+| WebSocket         | `socket.io-client`                                                            |
+| Forms             | React Hook Form + Zod                                                         |
+| HTTP client       | Axios (configured instance with interceptor for auth headers + token refresh) |
 
 ### 4.2 Routes
 
@@ -507,7 +523,7 @@ Session persistence: conversation ID and JWT stored in `localStorage` keyed by `
 Located at `src/theme/index.ts`. Extends Chakra's base theme with Brightwheel design tokens.
 
 ```typescript
-import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react';
+import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react'
 
 const config = defineConfig({
   theme: {
@@ -552,9 +568,9 @@ const config = defineConfig({
       },
     },
   },
-});
+})
 
-export const system = createSystem(defaultConfig, config);
+export const system = createSystem(defaultConfig, config)
 ```
 
 ### 4.5 State Management
@@ -582,11 +598,11 @@ Single Axios instance at `src/lib/apiClient.ts`:
 
 Defined in `render.yaml` (Render IaC):
 
-| Service | Type | Build command | Start command |
-|---|---|---|---|
-| `api` | Web Service | `pnpm --filter api build` | `node dist/main.js` |
-| `web` | Static Site | `pnpm --filter web build` | — |
-| `db` | PostgreSQL (managed) | — | — |
+| Service | Type                 | Build command             | Start command       |
+| ------- | -------------------- | ------------------------- | ------------------- |
+| `api`   | Web Service          | `pnpm --filter api build` | `node dist/main.js` |
+| `web`   | Static Site          | `pnpm --filter web build` | —                   |
+| `db`    | PostgreSQL (managed) | —                         | —                   |
 
 Object Storage: one Render Object Storage bucket (`brightwheel-handbooks`). Credentials injected as env vars into the `api` service.
 
@@ -633,7 +649,7 @@ services:
       POSTGRES_DB: brightwheel
       POSTGRES_USER: bw
       POSTGRES_PASSWORD: bw
-    ports: ["5432:5432"]
+    ports: ['5432:5432']
 
   postgres-test:
     image: pgvector/pgvector:pg16
@@ -641,7 +657,7 @@ services:
       POSTGRES_DB: brightwheel_test
       POSTGRES_USER: bw
       POSTGRES_PASSWORD: bw
-    ports: ["5433:5432"]
+    ports: ['5433:5432']
 ```
 
 ---
@@ -674,34 +690,34 @@ apps/api/
 ```typescript
 // test/knowledge.e2e-spec.ts
 describe('KnowledgeModule (e2e)', () => {
-  let app: INestApplication;
-  let db: DataSource;
+  let app: INestApplication
+  let db: DataSource
 
   beforeAll(async () => {
-    ({ app, db } = await createTestApp());
-  });
+    ;({ app, db } = await createTestApp())
+  })
 
   beforeEach(async () => {
-    await truncateAll(db);
-  });
+    await truncateAll(db)
+  })
 
   afterAll(async () => {
-    await app.close();
-  });
+    await app.close()
+  })
 
   it('POST /schools/:id/knowledge creates entry and generates embedding', async () => {
-    const { school, token } = await seedSchoolWithAdmin(db);
+    const { school, token } = await seedSchoolWithAdmin(db)
     // OpenAI embed is mocked; returns a fixed 1536-dim vector
     const res = await request(app.getHttpServer())
       .post(`/schools/${school.id}/knowledge`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ question: 'What are your hours?', answer: 'Mon–Fri 7am–6pm' });
+      .send({ question: 'What are your hours?', answer: 'Mon–Fri 7am–6pm' })
 
-    expect(res.status).toBe(201);
-    const entry = await db.getRepository(KnowledgeEntry).findOneBy({ id: res.body.data.id });
-    expect(entry.embedding).toHaveLength(1536);
-  });
-});
+    expect(res.status).toBe(201)
+    const entry = await db.getRepository(KnowledgeEntry).findOneBy({ id: res.body.data.id })
+    expect(entry.embedding).toHaveLength(1536)
+  })
+})
 ```
 
 ### 6.4 Mocking External Services
@@ -710,15 +726,15 @@ Use Jest module mocking at the `AIService` and `StorageService` class level:
 
 ```typescript
 // In test app setup
-jest.mock('../src/ai/ai.service');
-jest.mock('../src/storage/storage.service');
+jest.mock('../src/ai/ai.service')
+jest.mock('../src/storage/storage.service')
 
-AIService.prototype.embed = jest.fn().mockResolvedValue(new Array(1536).fill(0.01));
+AIService.prototype.embed = jest.fn().mockResolvedValue(new Array(1536).fill(0.01))
 AIService.prototype.generateResponse = jest.fn().mockResolvedValue({
   content: 'Mock response',
   certaintyScore: 0.9,
-});
-StorageService.prototype.upload = jest.fn().mockResolvedValue('https://storage/test/file.pdf');
+})
+StorageService.prototype.upload = jest.fn().mockResolvedValue('https://storage/test/file.pdf')
 ```
 
 ### 6.5 Jest Configuration
@@ -731,7 +747,7 @@ export default {
   testRegex: '.*\\.spec\\.ts$',
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   coverageDirectory: '../coverage',
-};
+}
 
 // apps/api/jest-e2e.config.ts
 export default {
@@ -740,7 +756,7 @@ export default {
   testRegex: '.e2e-spec.ts$',
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   testEnvironment: 'node',
-};
+}
 ```
 
 ---
@@ -838,15 +854,16 @@ The AI generation step uses Anthropic's streaming SDK. The `ChatGateway` subscri
 ```typescript
 for await (const event of stream) {
   if (event.type === 'content_block_delta') {
-    socket.emit('message:token', { token: event.delta.text, messageId });
+    socket.emit('message:token', { token: event.delta.text, messageId })
   }
 }
-socket.emit('message:complete', { messageId, certaintyScore, wasEscalated });
+socket.emit('message:complete', { messageId, certaintyScore, wasEscalated })
 ```
 
 ### pgvector Migration
 
 TypeORM does not natively support the `vector` column type. Use a custom migration to:
+
 1. `CREATE EXTENSION IF NOT EXISTS vector;`
 2. Add the column as `vector(1536)` in raw SQL.
 3. Register a custom TypeORM column type for `vector` in `DatabaseModule`.
@@ -858,15 +875,15 @@ When a new handbook is uploaded and extracted, the proposed changes are stored a
 ### Escalation Notification Delivery
 
 When `AIService.generateResponse()` returns a score below threshold, `ConversationsService.flagForEscalation()`:
+
 1. Updates `conversation.status = NEEDS_ATTENTION`.
 2. Emits `conversation:escalated` to the `school:{schoolId}` socket.io room in the `/notifications` namespace.
 3. All operator clients connected to that room (any logged-in staff for the school) receive the popup event.
 
 ---
 
-## 9. Open Items
+## 9. Future concerns
 
-- **Base inquiry enforcement:** Determine whether `isActive` gate is enforced server-side (API rejects parent chat if base inquiries incomplete) or only in the onboarding UI.
 - **Rate limiting:** Add `@nestjs/throttler` to parent-facing endpoints to prevent abuse.
 - **PDF text extraction accuracy:** `pdf-parse` may struggle with image-heavy or scanned PDFs. Evaluate fallback to OCR (e.g., Tesseract) or Anthropic's vision input.
 - **Handbook file MIME validation:** Enforce PDF/DOCX/TXT server-side; do not rely solely on file extension.
