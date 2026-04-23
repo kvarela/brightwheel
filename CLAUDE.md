@@ -95,28 +95,30 @@ English only. Text chat only. No embeddable widget (standalone page at `mybright
 ## Development Standards
 
 ### Repository Structure
-This is an npm workspaces monorepo:
-- `frontend/` — React + TypeScript + Chakra UI v3 (Vite)
-- `backend/` — NestJS + TypeScript + TypeORM + PostgreSQL
+This is a yarn workspaces monorepo:
+- `web/` — React + TypeScript + Chakra UI v3 (Vite)
+- `be/` — NestJS + TypeScript + TypeORM + PostgreSQL
+- `packages/shared/` — Shared TypeScript types (DTOs, enums)
 
 ### Frontend Standards
 - **One component per file.** Every React component lives in its own `.tsx` file. No barrel-style files that define multiple components.
 - **One interface per file.** Every TypeScript interface lives in its own `.ts` file under a `interfaces/` or `types/` directory co-located with the feature it belongs to.
-- **Type check and lint must pass before pushing.** Run `npm run typecheck` and `npm run lint` from either the `frontend/` directory or the monorepo root before every push. CI enforces this.
+- **Type check and lint must pass before pushing.** Run `yarn typecheck` and `yarn lint` from either the `web/` directory or the monorepo root before every push. CI enforces this.
 
 ### Backend Standards
 - **Unit tests required for all new features and bug fixes.** Every new service method, controller route, or utility added to the backend must have a corresponding `.spec.ts` unit test. Only external services (OpenAI, Anthropic, S3, etc.) are mocked; the test database is real.
-- **Tests must pass before pushing.** Run `npm run test` from the `backend/` directory or the monorepo root before every push. CI enforces this.
-- **Test database:** Unit and integration tests run against `brightwheel_test` (configured in `backend/.env.test`). The schema is recreated fresh on each test run via `dropSchema: true` + `synchronize: true` in the TypeORM test config. Never mock the database in tests.
+- **Tests must pass before pushing.** Run `yarn test` from the `be/` directory or the monorepo root before every push. CI enforces this.
+- **Test database:** Unit and integration tests run against `brightwheel_test` via `DATABASE_URL_TEST`. The schema is recreated fresh on each test run via `dropSchema: true` + `synchronize: true` in the TypeORM test config. Never mock the database in tests.
 
 ### Running checks locally
 ```bash
 # From monorepo root
-npm run typecheck   # type-checks both frontend and backend
-npm run lint        # lints both frontend and backend
-npm run test        # runs backend unit tests
+yarn typecheck   # type-checks both web and be
+yarn lint        # lints both web and be
+yarn test        # runs be unit tests
+yarn test:e2e    # runs be integration tests
 
 # From individual workspaces
-cd frontend && npm run typecheck && npm run lint
-cd backend  && npm run test
+cd web && yarn typecheck && yarn lint
+cd be  && yarn test && yarn test:e2e
 ```

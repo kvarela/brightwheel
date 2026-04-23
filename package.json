@@ -1,18 +1,15 @@
 {
-  "name": "brightwheel",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
+  "workspaces": ["be", "web", "packages/*"],
   "scripts": {
-    "dev": "concurrently --names fe,be --prefix-colors cyan,yellow \"npm run dev --workspace=frontend\" \"npm run start:dev --workspace=backend\"",
-    "dev:fe": "npm run dev --workspace=frontend",
-    "dev:be": "npm run start:dev --workspace=backend",
-    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
-    "test": "npm run test --workspace=backend",
-    "lint": "npm run lint --workspace=frontend && npm run lint --workspace=backend",
-    "typecheck": "npm run typecheck --workspace=frontend && npm run typecheck --workspace=backend"
+    "dev": "concurrently --names web,be --prefix-colors cyan,yellow \"yarn workspace web dev\" \"yarn workspace be start:dev\"",
+    "dev:web": "yarn workspace web dev",
+    "dev:be": "yarn workspace be start:dev",
+    "build": "yarn workspace web build && yarn workspace be build",
+    "test": "yarn workspace be test",
+    "test:e2e": "yarn workspace be test:e2e",
+    "lint": "yarn workspace web lint && yarn workspace be lint",
+    "typecheck": "yarn workspace web typecheck && yarn workspace be typecheck"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

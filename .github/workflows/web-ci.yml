@@ -1,0 +1,21 @@
+name: Web CI
+on:
+  push:
+    paths: ['web/**', 'packages/shared/**']
+  pull_request:
+    paths: ['web/**', 'packages/shared/**']
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+      - run: yarn install --frozen-lockfile
+      - name: Type check
+        run: yarn workspace @brightwheel/web typecheck
+      - name: Lint
+        run: yarn workspace @brightwheel/web lint
