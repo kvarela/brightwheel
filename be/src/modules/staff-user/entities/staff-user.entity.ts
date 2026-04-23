@@ -11,7 +11,7 @@ import {
 import { StaffRole } from '@brightwheel/shared'
 import { School } from '../../school/entities/school.entity'
 
-@Entity('staff_users')
+@Entity('staff_user')
 @Index(['schoolId', 'email'], { unique: true })
 export class StaffUser {
   @PrimaryGeneratedColumn('uuid')

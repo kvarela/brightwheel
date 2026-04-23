@@ -10,7 +10,7 @@ import { MessageRole } from '@brightwheel/shared'
 import { ChatSession } from './chat-session.entity'
 import { StaffUser } from '../../staff-user/entities/staff-user.entity'
 
-@Entity('messages')
+@Entity('message')
 export class Message {
   @PrimaryGeneratedColumn('uuid')
   id: string

@@ -11,7 +11,7 @@ import { BaseInquiryKey, KnowledgeBaseSource } from '@brightwheel/shared'
 import { School } from '../../school/entities/school.entity'
 import { HandbookVersion } from '../../handbook/entities/handbook-version.entity'
 
-@Entity('knowledge_base_entries')
+@Entity('knowledge_base_entry')
 export class KnowledgeBaseEntry {
   @PrimaryGeneratedColumn('uuid')
   id: string

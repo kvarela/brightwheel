@@ -11,7 +11,7 @@ import { HandbookFileType, HandbookUploadStatus } from '@brightwheel/shared'
 import { School } from '../../school/entities/school.entity'
 import { StaffUser } from '../../staff-user/entities/staff-user.entity'
 
-@Entity('handbook_uploads')
+@Entity('handbook_upload')
 export class HandbookUpload {
   @PrimaryGeneratedColumn('uuid')
   id: string

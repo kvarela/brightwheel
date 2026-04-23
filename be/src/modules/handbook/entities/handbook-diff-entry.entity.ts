@@ -15,7 +15,7 @@ import {
 import { HandbookVersion } from './handbook-version.entity'
 import { KnowledgeBaseEntry } from '../../knowledge-base/entities/knowledge-base-entry.entity'
 
-@Entity('handbook_diff_entries')
+@Entity('handbook_diff_entry')
 export class HandbookDiffEntry {
   @PrimaryGeneratedColumn('uuid')
   id: string

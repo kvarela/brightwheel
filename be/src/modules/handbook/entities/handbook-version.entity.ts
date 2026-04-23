@@ -13,7 +13,7 @@ import { School } from '../../school/entities/school.entity'
 import { StaffUser } from '../../staff-user/entities/staff-user.entity'
 import { HandbookUpload } from './handbook-upload.entity'
 
-@Entity('handbook_versions')
+@Entity('handbook_version')
 export class HandbookVersion {
   @PrimaryGeneratedColumn('uuid')
   id: string

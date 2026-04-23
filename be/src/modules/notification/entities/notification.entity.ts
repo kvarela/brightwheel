@@ -10,7 +10,7 @@ import { NotificationType } from '@brightwheel/shared'
 import { StaffUser } from '../../staff-user/entities/staff-user.entity'
 import { ChatSession } from '../../chat/entities/chat-session.entity'
 
-@Entity('notifications')
+@Entity('notification')
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id: string

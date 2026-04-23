@@ -2,7 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm'
 import { Message } from './message.entity'
 import { KnowledgeBaseEntry } from '../../knowledge-base/entities/knowledge-base-entry.entity'
 
-@Entity('message_knowledge_base_entries')
+@Entity('message_knowledge_base_entry')
 export class MessageKnowledgeBaseEntry {
   @PrimaryColumn()
   messageId: string

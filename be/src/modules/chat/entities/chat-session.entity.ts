@@ -11,7 +11,7 @@ import { ChatSessionStatus, InboxState } from '@brightwheel/shared'
 import { School } from '../../school/entities/school.entity'
 import { StaffUser } from '../../staff-user/entities/staff-user.entity'
 
-@Entity('chat_sessions')
+@Entity('chat_session')
 export class ChatSession {
   @PrimaryGeneratedColumn('uuid')
   id: string
