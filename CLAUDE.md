@@ -109,6 +109,7 @@ This is a yarn workspaces monorepo:
 - **Unit tests required for all new features and bug fixes.** Every new service method, controller route, or utility added to the backend must have a corresponding `.spec.ts` unit test. Only external services (OpenAI, Anthropic, S3, etc.) are mocked; the test database is real.
 - **Tests must pass before pushing.** Run `yarn test` from the `be/` directory or the monorepo root before every push. CI enforces this.
 - **Test database:** Unit and integration tests run against `brightwheel_test` via `DATABASE_URL_TEST`. The schema is recreated fresh on each test run via `dropSchema: true` + `synchronize: true` in the TypeORM test config. Never mock the database in tests.
+- **Database table names are singular.** TypeORM `@Entity()` table names use the singular form (e.g., `chat_session`, not `chat_sessions`). This applies to all join tables as well.
 
 ### Running checks locally
 ```bash
