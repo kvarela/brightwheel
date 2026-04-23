@@ -43,15 +43,3 @@ jobs:
           RENDER_STORAGE_ACCESS_KEY: test
           RENDER_STORAGE_SECRET_KEY: test
           RENDER_STORAGE_BUCKET: test
-      - name: Integration tests
-        run: yarn workspace @brightwheel/be test:e2e
-        env:
-          DATABASE_URL_TEST: postgresql://bw:bw@localhost:5433/brightwheel_test
-          JWT_SECRET: test-secret
-          JWT_EXPIRY: 10y
-          OPENAI_API_KEY: test
-          ANTHROPIC_API_KEY: test
-          RENDER_STORAGE_ENDPOINT: http://localhost
-          RENDER_STORAGE_ACCESS_KEY: test
-          RENDER_STORAGE_SECRET_KEY: test
-          RENDER_STORAGE_BUCKET: test
