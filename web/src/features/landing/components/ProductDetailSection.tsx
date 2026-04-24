@@ -12,15 +12,27 @@ interface ProductFeature {
 
 function MockChatUI() {
   return (
-    <Flex direction="column" gap={3} p={6} bg="white" borderRadius="8px" boxShadow="0 8px 32px rgba(0,0,0,0.1)">
+    <Flex
+      direction="column"
+      gap={3}
+      p={6}
+      bg="white"
+      borderRadius="8px"
+      boxShadow="0 8px 32px rgba(0,0,0,0.1)"
+    >
       <Flex align="center" gap={2} pb={3} borderBottom="1px solid #EBEFF4">
         <Box w="8px" h="8px" borderRadius="full" bg="#3BBA6E" />
-        <Text fontSize="13px" fontWeight={600} color="#18181D">AI Front Desk · Sunshine Learning</Text>
+        <Text fontSize="13px" fontWeight={600} color="#18181D">
+          AI Front Desk · Sunshine Learning
+        </Text>
       </Flex>
       {[
         { role: 'ai', text: 'Hello! How can I help you today?' },
         { role: 'parent', text: 'What are your hours?' },
-        { role: 'ai', text: 'We're open Monday–Friday, 7:30 AM to 6:00 PM. Drop-off is 7:30–9:00 AM and pick-up is 4:00–6:00 PM.' },
+        {
+          role: 'ai',
+          text: "We're open Monday–Friday, 7:30 AM to 6:00 PM. Drop-off is 7:30–9:00 AM and pick-up is 4:00–6:00 PM.",
+        },
       ].map((msg, i) => (
         <Box
           key={i}
@@ -31,15 +43,21 @@ function MockChatUI() {
           maxW="85%"
           alignSelf={msg.role === 'ai' ? 'flex-start' : 'flex-end'}
         >
-          <Text fontSize="13px" lineHeight={1.5}>{msg.text}</Text>
+          <Text fontSize="13px" lineHeight={1.5}>
+            {msg.text}
+          </Text>
         </Box>
       ))}
       <Flex gap={2} mt={2}>
         <Box flex={1} border="1px solid #EBEFF4" borderRadius="2px" px={3} py={2}>
-          <Text fontSize="12px" color="#737685">Type your question...</Text>
+          <Text fontSize="12px" color="#737685">
+            Type your question...
+          </Text>
         </Box>
         <Box bg="#5463D6" borderRadius="2px" px={3} py={2} cursor="pointer">
-          <Text fontSize="12px" color="white" fontWeight={600}>Send</Text>
+          <Text fontSize="12px" color="white" fontWeight={600}>
+            Send
+          </Text>
         </Box>
       </Flex>
     </Flex>
@@ -48,8 +66,21 @@ function MockChatUI() {
 
 function MockKnowledgeUI() {
   return (
-    <Flex direction="column" gap={3} p={6} bg="white" borderRadius="8px" boxShadow="0 8px 32px rgba(0,0,0,0.1)">
-      <Text fontSize="14px" fontWeight={700} color="#1E2549" pb={2} borderBottom="1px solid #EBEFF4">
+    <Flex
+      direction="column"
+      gap={3}
+      p={6}
+      bg="white"
+      borderRadius="8px"
+      boxShadow="0 8px 32px rgba(0,0,0,0.1)"
+    >
+      <Text
+        fontSize="14px"
+        fontWeight={700}
+        color="#1E2549"
+        pb={2}
+        borderBottom="1px solid #EBEFF4"
+      >
         Knowledge Base · 24 entries
       </Text>
       {[
@@ -59,9 +90,20 @@ function MockKnowledgeUI() {
         { q: 'What should my child bring?', source: 'Manual entry' },
       ].map((item, i) => (
         <Flex key={i} align="center" justify="space-between" p={3} bg="#F7F9FB" borderRadius="4px">
-          <Text fontSize="13px" color="#18181D" fontWeight={500}>{item.q}</Text>
-          <Box bg={item.source === 'Handbook' ? '#EEF0FC' : '#E5F7F7'} borderRadius="100px" px={2} py={1}>
-            <Text fontSize="11px" color={item.source === 'Handbook' ? '#5463D6' : '#29B9BB'} fontWeight={600}>
+          <Text fontSize="13px" color="#18181D" fontWeight={500}>
+            {item.q}
+          </Text>
+          <Box
+            bg={item.source === 'Handbook' ? '#EEF0FC' : '#E5F7F7'}
+            borderRadius="100px"
+            px={2}
+            py={1}
+          >
+            <Text
+              fontSize="11px"
+              color={item.source === 'Handbook' ? '#5463D6' : '#29B9BB'}
+              fontWeight={600}
+            >
               {item.source}
             </Text>
           </Box>
@@ -76,7 +118,9 @@ function MockKnowledgeUI() {
         py={3}
         cursor="pointer"
       >
-        <Text fontSize="13px" color="#5463D6" fontWeight={600}>+ Upload handbook PDF</Text>
+        <Text fontSize="13px" color="#5463D6" fontWeight={600}>
+          + Upload handbook PDF
+        </Text>
       </Flex>
     </Flex>
   )
@@ -84,22 +128,66 @@ function MockKnowledgeUI() {
 
 function MockEscalationUI() {
   return (
-    <Flex direction="column" gap={3} p={6} bg="white" borderRadius="8px" boxShadow="0 8px 32px rgba(0,0,0,0.1)">
-      <Text fontSize="14px" fontWeight={700} color="#1E2549" pb={2} borderBottom="1px solid #EBEFF4">
+    <Flex
+      direction="column"
+      gap={3}
+      p={6}
+      bg="white"
+      borderRadius="8px"
+      boxShadow="0 8px 32px rgba(0,0,0,0.1)"
+    >
+      <Text
+        fontSize="14px"
+        fontWeight={700}
+        color="#1E2549"
+        pb={2}
+        borderBottom="1px solid #EBEFF4"
+      >
         Operator Inbox
       </Text>
       {[
-        { name: 'Emma Rodriguez', issue: 'Questions about IEP accommodation', state: 'Needs attention', stateColor: '#CF193A', stateBg: '#FFF6F5' },
-        { name: 'James Kim', issue: 'Tuition payment dispute', state: 'In progress', stateColor: '#896507', stateBg: '#FFF9E5' },
-        { name: 'Sofia Patel', issue: 'Enrollment for next fall', state: 'Resolved', stateColor: '#3BBA6E', stateBg: '#E9F8EF' },
+        {
+          name: 'Emma Rodriguez',
+          issue: 'Questions about IEP accommodation',
+          state: 'Needs attention',
+          stateColor: '#CF193A',
+          stateBg: '#FFF6F5',
+        },
+        {
+          name: 'James Kim',
+          issue: 'Tuition payment dispute',
+          state: 'In progress',
+          stateColor: '#896507',
+          stateBg: '#FFF9E5',
+        },
+        {
+          name: 'Sofia Patel',
+          issue: 'Enrollment for next fall',
+          state: 'Resolved',
+          stateColor: '#3BBA6E',
+          stateBg: '#E9F8EF',
+        },
       ].map((item, i) => (
-        <Flex key={i} align="center" justify="space-between" p={3} border="1px solid #EBEFF4" borderRadius="4px">
+        <Flex
+          key={i}
+          align="center"
+          justify="space-between"
+          p={3}
+          border="1px solid #EBEFF4"
+          borderRadius="4px"
+        >
           <Box>
-            <Text fontSize="13px" fontWeight={600} color="#18181D">{item.name}</Text>
-            <Text fontSize="12px" color="#737685" mt={0.5}>{item.issue}</Text>
+            <Text fontSize="13px" fontWeight={600} color="#18181D">
+              {item.name}
+            </Text>
+            <Text fontSize="12px" color="#737685" mt={0.5}>
+              {item.issue}
+            </Text>
           </Box>
           <Box bg={item.stateBg} borderRadius="100px" px={2} py={1} whiteSpace="nowrap">
-            <Text fontSize="11px" color={item.stateColor} fontWeight={600}>{item.state}</Text>
+            <Text fontSize="11px" color={item.stateColor} fontWeight={600}>
+              {item.state}
+            </Text>
           </Box>
         </Flex>
       ))}
@@ -112,7 +200,7 @@ const FEATURES: ProductFeature[] = [
     eyebrow: 'AI-Powered Chat',
     title: 'Answer every parent question, even at 2am',
     description:
-      "Your AI front desk handles the questions your staff fields dozens of times each day — hours, tuition, enrollment, illness policies, and more. Parents get instant answers. Your team gets their time back.",
+      'Your AI front desk handles the questions your staff fields dozens of times each day — hours, tuition, enrollment, illness policies, and more. Parents get instant answers. Your team gets their time back.',
     bullets: [
       'Responds in under 2 seconds, 24 hours a day',
       'Understands nuanced questions, not just keywords',
@@ -126,7 +214,7 @@ const FEATURES: ProductFeature[] = [
     eyebrow: 'Knowledge Base',
     title: 'Build your knowledge base in minutes',
     description:
-      "Upload your parent handbook, add FAQs manually, or let our AI extract key policies from any document. The more you add, the smarter and more accurate your AI front desk becomes.",
+      'Upload your parent handbook, add FAQs manually, or let our AI extract key policies from any document. The more you add, the smarter and more accurate your AI front desk becomes.',
     bullets: [
       'AI extracts Q&A pairs from uploaded PDFs automatically',
       '12 base inquiries pre-configured for every school',
@@ -177,7 +265,13 @@ export function ProductDetailSection() {
               <GridItem order={{ base: 1, lg: feature.imageFirst ? 2 : 1 }}>
                 <VStack align="start" gap={6}>
                   <Box
-                    bg={feature.accentColor === '#5463D6' ? '#EEF0FC' : feature.accentColor === '#29B9BB' ? '#E5F7F7' : '#E9F8EF'}
+                    bg={
+                      feature.accentColor === '#5463D6'
+                        ? '#EEF0FC'
+                        : feature.accentColor === '#29B9BB'
+                          ? '#E5F7F7'
+                          : '#E9F8EF'
+                    }
                     color={feature.accentColor}
                     px="12px"
                     py="6px"
@@ -215,7 +309,9 @@ export function ProductDetailSection() {
                           flexShrink={0}
                           mt="1px"
                         >
-                          <Text color="white" fontSize="11px" fontWeight={700}>✓</Text>
+                          <Text color="white" fontSize="11px" fontWeight={700}>
+                            ✓
+                          </Text>
                         </Box>
                         <Text fontSize="15px" color="#18181D" lineHeight={1.5}>
                           {bullet}
