@@ -1,10 +1,13 @@
 import { Box, Flex, HStack, Text } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { BrightwheelLogo } from './BrightwheelLogo'
+import { useAuthStore } from '../store/authStore'
 
 const NAV_ITEMS = ['For Schools', 'For Parents', 'Features', 'Pricing']
 
 export function Header() {
+  const { openLogin, openRegister } = useAuthStore()
+
   return (
     <Box
       as="header"
@@ -43,43 +46,41 @@ export function Header() {
         </HStack>
 
         <HStack gap={3}>
-          <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-            <Box
-              as="button"
-              bg="transparent"
-              color="white"
-              border="1px solid rgba(255,255,255,0.4)"
-              borderRadius="2px"
-              px="20px"
-              py="10px"
-              fontSize="14px"
-              fontWeight={600}
-              cursor="pointer"
-              transition="all 0.3s ease-in-out"
-              _hover={{ bg: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.8)' }}
-            >
-              Login
-            </Box>
-          </RouterLink>
-          <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-            <Box
-              as="button"
-              bg="#5463D6"
-              color="white"
-              border="none"
-              borderRadius="2px"
-              px="20px"
-              py="10px"
-              fontSize="14px"
-              fontWeight={600}
-              cursor="pointer"
-              display={{ base: 'none', md: 'block' }}
-              transition="all 0.3s ease-in-out"
-              _hover={{ bg: '#4352c5' }}
-            >
-              Get started
-            </Box>
-          </RouterLink>
+          <Box
+            as="button"
+            bg="transparent"
+            color="white"
+            border="1px solid rgba(255,255,255,0.4)"
+            borderRadius="2px"
+            px="20px"
+            py="10px"
+            fontSize="14px"
+            fontWeight={600}
+            cursor="pointer"
+            transition="all 0.3s ease-in-out"
+            _hover={{ bg: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.8)' }}
+            onClick={openLogin}
+          >
+            Login
+          </Box>
+          <Box
+            as="button"
+            bg="#5463D6"
+            color="white"
+            border="none"
+            borderRadius="2px"
+            px="20px"
+            py="10px"
+            fontSize="14px"
+            fontWeight={600}
+            cursor="pointer"
+            display={{ base: 'none', md: 'block' }}
+            transition="all 0.3s ease-in-out"
+            _hover={{ bg: '#4352c5' }}
+            onClick={openRegister}
+          >
+            Get started
+          </Box>
         </HStack>
       </Flex>
     </Box>

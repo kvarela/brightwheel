@@ -5,4 +5,7 @@ export default {
   transform: { '^.+\\.(t|j)s$': 'ts-jest' },
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
+  moduleNameMapper: {
+    '^@brightwheel/shared$': '<rootDir>/../../packages/shared/src',
+  },
 }
