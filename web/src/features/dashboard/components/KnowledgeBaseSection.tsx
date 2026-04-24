@@ -143,13 +143,7 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
 
   return (
     <Box bg="white" borderRadius="2px" border="1px solid #EBEFF4" p="24px">
-      <Box
-        display="flex"
-        alignItems="center"
-        mb="16px"
-        flexWrap="wrap"
-        gap="12px"
-      >
+      <Box display="flex" alignItems="center" mb="16px" flexWrap="wrap" gap="12px">
         <Box display="flex" alignItems="center" gap="4px" flexShrink={0}>
           <Text
             fontSize="22px"
@@ -181,7 +175,12 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
             </Box>
           )}
         </Box>
-        <Box flex="1" display="flex" justifyContent="center" minWidth={{ base: '100%', md: '200px' }}>
+        <Box
+          flex="1"
+          display="flex"
+          justifyContent="center"
+          minWidth={{ base: '100%', md: '200px' }}
+        >
           <Input
             placeholder="Search questions and answers…"
             value={search}
@@ -238,7 +237,6 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
           _hover={canClear ? { bg: '#CF193A', color: 'white', borderColor: '#CF193A' } : {}}
           transition="all 0.2s"
           onClick={canClear ? openClearDialog : undefined}
-          disabled={!canClear}
           title={
             totalEntries === 0
               ? 'Knowledge base is already empty'
