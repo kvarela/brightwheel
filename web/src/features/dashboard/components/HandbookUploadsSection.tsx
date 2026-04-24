@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
-import { Maximize2, X, Plus } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
 import { useDeleteHandbookUpload } from '../hooks/useDeleteHandbookUpload'
 import { HandbookUpload, HandbookUploadStatus } from '../types/HandbookUpload'
 import { DeleteHandbookUploadDialog } from './DeleteHandbookUploadDialog'
 
-const STATUS_CONFIG: Record<
-  HandbookUploadStatus,
-  { label: string; bg: string; color: string }
-> = {
+const STATUS_CONFIG: Record<HandbookUploadStatus, { label: string; bg: string; color: string }> = {
   pending: { label: 'Pending', bg: '#F7F9FB', color: '#5C5E6A' },
   processing: { label: 'Processing', bg: '#FFF9E5', color: '#896507' },
   completed: { label: 'Completed', bg: '#E9F8EF', color: '#3BBA6E' },
@@ -72,12 +69,7 @@ function UploadRow({
           <Text fontSize="14px" fontWeight={600} color="#18181D">
             {upload.fileName}
           </Text>
-          <Text
-            fontSize="12px"
-            color="#737685"
-            textTransform="uppercase"
-            fontWeight={500}
-          >
+          <Text fontSize="12px" color="#737685" textTransform="uppercase" fontWeight={500}>
             {upload.fileType}
           </Text>
           <StatusBadge status={upload.status} />
@@ -91,19 +83,12 @@ function UploadRow({
           Uploaded by {upload.uploadedBy.fullName}
         </Text>
       </Box>
-      <Box
-        display="flex"
-        alignItems="center"
-        gap="8px"
-        flexShrink={0}
-      >
+      <Box display="flex" alignItems="center" gap="8px" flexShrink={0}>
         <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
           {formatDate(upload.createdAt)}
         </Text>
         {canDelete && (
           <Box
-            as="button"
-            type="button"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -173,7 +158,6 @@ export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
         </Text>
         {!fullPage && (
           <Box
-            as="button"
             display="flex"
             alignItems="center"
             justifyContent="center"
