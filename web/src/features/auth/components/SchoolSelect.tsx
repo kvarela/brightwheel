@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Box, Input, Text } from '@chakra-ui/react'
 import { apiClient } from '../../../lib/apiClient'
+import { Loader } from '../../../components/Loader'
 
 interface SchoolOption {
   id: string
@@ -124,8 +125,8 @@ export function SchoolSelect({ value, onChange, hasError }: SchoolSelectProps) {
           overflowY="auto"
         >
           {isLoading && (
-            <Box px="4" py="3">
-              <Text fontSize="14px" color="#737685">Searching…</Text>
+            <Box px="4" py="4">
+              <Loader text="Searching…" size="sm" />
             </Box>
           )}
 

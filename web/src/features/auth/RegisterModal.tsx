@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Button, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
 import { apiClient } from '../../lib/apiClient'
 import { useAuthStore } from '../../store/authStore'
+import { Loader } from '../../components/Loader'
 import { SchoolSelect } from './components/SchoolSelect'
 import type { SchoolSelection } from './components/SchoolSelect'
 import type { RegisterFormData } from './interfaces/RegisterFormData'
@@ -272,7 +273,7 @@ export function RegisterModal() {
                   _active={{ bg: '#3A47B0' }}
                   _disabled={{ opacity: 0.7, cursor: 'not-allowed' }}
                 >
-                  {isSubmitting ? 'Creating account…' : 'Create account'}
+                  {isSubmitting ? <Loader size="sm" text="Creating account…" inline /> : 'Create account'}
                 </Button>
 
                 {/* Switch to login */}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Button, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
 import { apiClient } from '../../lib/apiClient'
 import { useAuthStore } from '../../store/authStore'
+import { Loader } from '../../components/Loader'
 import type { LoginFormData } from './interfaces/LoginFormData'
 
 export function LoginModal() {
@@ -187,7 +188,7 @@ export function LoginModal() {
                   _active={{ bg: '#3A47B0' }}
                   _disabled={{ opacity: 0.7, cursor: 'not-allowed' }}
                 >
-                  {isSubmitting ? 'Logging in…' : 'Log in'}
+                  {isSubmitting ? <Loader size="sm" text="Logging in…" inline /> : 'Log in'}
                 </Button>
 
                 {/* Switch to register */}
