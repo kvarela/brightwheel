@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { ILike, Repository } from 'typeorm'
 import { School } from './entities/school.entity'
 
 @Injectable()
@@ -10,10 +10,16 @@ export class SchoolService {
     private readonly schoolRepository: Repository<School>,
   ) {}
 
-  async findAllActive(): Promise<School[]> {
+  async findAllActive(search?: string): Promise<School[]> {
     return this.schoolRepository.find({
-      where: { isActive: true },
+      where: search
+        ? [
+            { isActive: true, name: ILike(`%${search}%`) },
+            { isActive: true, slug: ILike(`%${search}%`) },
+          ]
+        : { isActive: true },
       order: { name: 'ASC' },
+      take: 50,
     })
   }
 

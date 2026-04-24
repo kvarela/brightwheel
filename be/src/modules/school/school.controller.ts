@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common'
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common'
 import { SchoolService } from './school.service'
 import { School } from './entities/school.entity'
 
@@ -7,8 +7,10 @@ export class SchoolController {
   constructor(private readonly schoolService: SchoolService) {}
 
   @Get()
-  async list(): Promise<Array<Pick<School, 'id' | 'name' | 'slug'>>> {
-    const schools = await this.schoolService.findAllActive()
+  async list(
+    @Query('search') search?: string,
+  ): Promise<Array<Pick<School, 'id' | 'name' | 'slug'>>> {
+    const schools = await this.schoolService.findAllActive(search?.trim() || undefined)
     return schools.map(({ id, name, slug }) => ({ id, name, slug }))
   }
 

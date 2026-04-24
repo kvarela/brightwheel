@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Box, Flex, Input, Spinner, Text, VStack } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import { useSchools } from '../api/useSchools'
+import { useDebounce } from '../../../hooks/useDebounce'
 import type { School } from '../types/School'
 
 interface SchoolSelectionModalProps {
@@ -11,8 +12,9 @@ interface SchoolSelectionModalProps {
 
 export function SchoolSelectionModal({ isOpen, onClose }: SchoolSelectionModalProps) {
   const navigate = useNavigate()
-  const { data: schools, isLoading, isError, refetch } = useSchools()
   const [query, setQuery] = useState('')
+  const debouncedQuery = useDebounce(query, 300)
+  const { data: schools, isLoading, isError, refetch } = useSchools(debouncedQuery.trim() || undefined)
 
   useEffect(() => {
     if (!isOpen) return
@@ -26,15 +28,6 @@ export function SchoolSelectionModal({ isOpen, onClose }: SchoolSelectionModalPr
       document.body.style.overflow = ''
     }
   }, [isOpen, onClose])
-
-  const filtered = useMemo(() => {
-    if (!schools) return []
-    const q = query.trim().toLowerCase()
-    if (!q) return schools
-    return schools.filter(
-      (s) => s.name.toLowerCase().includes(q) || s.slug.toLowerCase().includes(q),
-    )
-  }, [schools, query])
 
   if (!isOpen) return null
 
@@ -157,7 +150,7 @@ export function SchoolSelectionModal({ isOpen, onClose }: SchoolSelectionModalPr
             </VStack>
           )}
 
-          {!isLoading && !isError && filtered.length === 0 && (
+          {!isLoading && !isError && schools.length === 0 && (
             <Flex direction="column" align="center" py="32px" gap={2}>
               <Text fontSize="14px" color="#18181D" fontWeight={600}>
                 No schools match your search
@@ -168,9 +161,9 @@ export function SchoolSelectionModal({ isOpen, onClose }: SchoolSelectionModalPr
             </Flex>
           )}
 
-          {!isLoading && !isError && filtered.length > 0 && (
+          {!isLoading && !isError && schools.length > 0 && (
             <VStack gap={0} align="stretch">
-              {filtered.map((school) => (
+              {schools.map((school) => (
                 <Box
                   key={school.id}
                   as="button"
