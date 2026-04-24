@@ -66,7 +66,14 @@ export function HeroSection() {
         bgGradient="radial(ellipse 55% 60% at 50% 45%, white 25%, transparent 75%)"
         pointerEvents="none"
       />
-      <VStack gap={0} maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }} position="relative" zIndex={1}>
+      <VStack
+        gap={0}
+        maxW="1200px"
+        mx="auto"
+        px={{ base: '16px', md: '32px' }}
+        position="relative"
+        zIndex={1}
+      >
         <VStack gap={6} maxW="760px" mx="auto" textAlign="center">
           <Box
             bg="#EEF0FC"

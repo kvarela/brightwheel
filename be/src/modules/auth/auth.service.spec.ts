@@ -121,7 +121,13 @@ describe('AuthService', () => {
 
     it('throws NotFoundException if schoolId does not exist', async () => {
       await expect(
-        service.register('Nobody', 'nobody2@example.com', 'password123', '00000000-0000-0000-0000-000000000000', null),
+        service.register(
+          'Nobody',
+          'nobody2@example.com',
+          'password123',
+          '00000000-0000-0000-0000-000000000000',
+          null,
+        ),
       ).rejects.toThrow(NotFoundException)
     })
   })

@@ -17,6 +17,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      localStorage.removeItem('token')
       useAuthStore.getState().clearToken()
       window.location.href = '/'
     }
