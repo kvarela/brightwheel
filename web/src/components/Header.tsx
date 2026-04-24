@@ -29,7 +29,7 @@ export function Header() {
         justify="space-between"
       >
         <RouterLink to="/" style={{ textDecoration: 'none' }}>
-          <BrightwheelLogo variant="light" />
+          <BrightwheelLogo />
         </RouterLink>
 
         <HStack gap={8} display={{ base: 'none', lg: 'flex' }}>
@@ -52,12 +52,7 @@ export function Header() {
           <HStack gap={3}>
             <NotificationBadge />
             <RouterLink to="/dashboard" style={{ textDecoration: 'none' }}>
-              <BwButton
-                variant="outline-light"
-                px="20px"
-                py="10px"
-                fontSize="14px"
-              >
+              <BwButton variant="outline-light" px="20px" py="10px" fontSize="14px">
                 Dashboard
               </BwButton>
             </RouterLink>

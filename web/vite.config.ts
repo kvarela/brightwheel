@@ -9,6 +9,9 @@ export default defineConfig({
       '@brightwheel/shared': path.resolve(__dirname, '../packages/shared/src'),
     },
   },
+  optimizeDeps: {
+    include: ['@brightwheel/shared'],
+  },
   server: {
     port: 5173,
     proxy: {

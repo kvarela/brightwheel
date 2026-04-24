@@ -14,13 +14,7 @@ import { MessageKnowledgeBaseEntry } from './entities/message-knowledge-base-ent
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      ChatSession,
-      Message,
-      MessageKnowledgeBaseEntry,
-      School,
-      StaffUser,
-    ]),
+    TypeOrmModule.forFeature([ChatSession, Message, MessageKnowledgeBaseEntry, School, StaffUser]),
     AiModule,
     KnowledgeBaseModule,
     NotificationModule,

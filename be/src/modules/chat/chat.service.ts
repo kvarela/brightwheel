@@ -1,9 +1,5 @@
 import { randomBytes } from 'crypto'
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
@@ -95,11 +91,7 @@ export class ChatService {
     )
 
     const queryEmbedding = await this.aiService.generateEmbedding(content)
-    const kbResults = await this.kbService.search(
-      session.schoolId,
-      content,
-      queryEmbedding,
-    )
+    const kbResults = await this.kbService.search(session.schoolId, content, queryEmbedding)
 
     const topSimilarity = kbResults[0]?.similarity ?? 0
     const generated = await this.aiService.generateResponse(
@@ -151,10 +143,7 @@ export class ChatService {
       await this.sessionRepository.save(session)
       escalated = true
 
-      await this.notificationService.createEscalationForSchool(
-        session.schoolId,
-        session.id,
-      )
+      await this.notificationService.createEscalationForSchool(session.schoolId, session.id)
       const event: EscalationEventDto = {
         chatSessionId: session.id,
         schoolId: session.schoolId,
@@ -221,10 +210,7 @@ export class ChatService {
     if (!session) throw new NotFoundException('Conversation not found')
     if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
 
-    await this.notificationService.markAllReadForSession(
-      staff.sub,
-      conversationId,
-    )
+    await this.notificationService.markAllReadForSession(staff.sub, conversationId)
 
     const messages = await this.loadMessagesForSession(session.id)
     const dto = await this.toSessionDto(session)
@@ -242,10 +228,7 @@ export class ChatService {
     if (!session) throw new NotFoundException('Conversation not found')
     if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
 
-    if (
-      session.inboxState === InboxState.NeedsAttention ||
-      !session.inboxState
-    ) {
+    if (session.inboxState === InboxState.NeedsAttention || !session.inboxState) {
       session.inboxState = InboxState.InProgress
       session.assignedStaffId = staff.sub
       await this.sessionRepository.save(session)
@@ -295,30 +278,18 @@ export class ChatService {
     return this.toSessionDto(session)
   }
 
-  private async loadMessagesForSession(
-    sessionId: string,
-  ): Promise<ChatMessageDto[]> {
+  private async loadMessagesForSession(sessionId: string): Promise<ChatMessageDto[]> {
     const messages = await this.messageRepository
       .createQueryBuilder('m')
-      .leftJoinAndMapOne(
-        'm.sentByStaff',
-        StaffUser,
-        'staff',
-        'staff.id = m.sentByStaffId',
-      )
+      .leftJoinAndMapOne('m.sentByStaff', StaffUser, 'staff', 'staff.id = m.sentByStaffId')
       .where('m.chatSessionId = :sessionId', { sessionId })
       .orderBy('m.createdAt', 'ASC')
       .getMany()
 
-    return messages.map((m) =>
-      this.toMessageDto(m, m.sentByStaff?.fullName ?? null),
-    )
+    return messages.map((m) => this.toMessageDto(m, m.sentByStaff?.fullName ?? null))
   }
 
-  private toMessageDto(
-    message: Message,
-    sentByStaffName: string | null,
-  ): ChatMessageDto {
+  private toMessageDto(message: Message, sentByStaffName: string | null): ChatMessageDto {
     return {
       id: message.id,
       role: message.role,
@@ -353,8 +324,18 @@ export class ChatService {
         last && last.certaintyScore !== null && last.certaintyScore !== undefined
           ? Number(last.certaintyScore)
           : null,
-      unreadForStaff:
-        session.inboxState === InboxState.NeedsAttention,
+      unreadForStaff: session.inboxState === InboxState.NeedsAttention,
     }
+  }
+
+  findLiveBySchool(schoolId: string): Promise<ChatSession[]> {
+    return this.sessionRepository.find({
+      where: [
+        { schoolId, status: ChatSessionStatus.Active },
+        { schoolId, status: ChatSessionStatus.Escalated },
+      ],
+      relations: ['assignedStaff'],
+      order: { escalatedAt: 'DESC', createdAt: 'DESC' },
+    })
   }
 }

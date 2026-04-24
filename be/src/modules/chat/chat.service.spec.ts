@@ -45,16 +45,12 @@ describe('ChatService', () => {
     messageRepo = app.get(getRepositoryToken(Message))
 
     const aiService = app.get(AiService)
-    aiEmbedding = jest
-      .spyOn(aiService, 'generateEmbedding')
-      .mockResolvedValue(null)
+    aiEmbedding = jest.spyOn(aiService, 'generateEmbedding').mockResolvedValue(null)
     aiGenerateResponse = jest.spyOn(aiService, 'generateResponse')
 
     const gateway = app.get(NotificationGateway)
     emitEscalation = jest.spyOn(gateway, 'emitEscalation').mockImplementation()
-    emitNewMessage = jest
-      .spyOn(gateway, 'emitNewParentMessage')
-      .mockImplementation()
+    emitNewMessage = jest.spyOn(gateway, 'emitNewParentMessage').mockImplementation()
   }, 30000)
 
   afterAll(async () => {
@@ -90,9 +86,9 @@ describe('ChatService', () => {
     })
 
     it('throws NotFoundException when school does not exist', async () => {
-      await expect(
-        service.createSession('00000000-0000-0000-0000-000000000000'),
-      ).rejects.toThrow('not found')
+      await expect(service.createSession('00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+        'not found',
+      )
     })
   })
 
@@ -233,10 +229,7 @@ describe('ChatService', () => {
         },
       ])
 
-      const results = await service.listConversationsForSchool(
-        school.id,
-        InboxState.Resolved,
-      )
+      const results = await service.listConversationsForSchool(school.id, InboxState.Resolved)
 
       expect(results).toHaveLength(1)
       expect(results[0].inboxState).toBe(InboxState.Resolved)

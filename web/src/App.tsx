@@ -1,7 +1,10 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { LandingPage } from './features/landing/LandingPage'
-import { DashboardPage } from './features/inbox/pages/DashboardPage'
+import { HandbookUploadPage } from './features/handbook/HandbookUploadPage'
+import { DashboardPage } from './features/dashboard/DashboardPage'
+import { LiveChatsPage } from './features/dashboard/pages/LiveChatsPage'
+import { KnowledgeBasePage } from './features/dashboard/pages/KnowledgeBasePage'
 import { ParentChatPage } from './features/parent-chat/pages/ParentChatPage'
 
 export function App() {
@@ -9,11 +12,12 @@ export function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/handbook" element={<HandbookUploadPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        {/* Feature routes are registered per feature module */}
+        <Route path="/dashboard/chats" element={<LiveChatsPage />} />
+        <Route path="/dashboard/knowledge-base" element={<KnowledgeBasePage />} />
+        <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
       </Route>
-      <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
     </Routes>
   )
 }

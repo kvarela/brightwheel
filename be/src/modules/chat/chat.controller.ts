@@ -7,10 +7,9 @@ import {
   Patch,
   Post,
   Query,
-  Req,
+  Request,
   UseGuards,
 } from '@nestjs/common'
-import type { Request } from 'express'
 import {
   ChatMessageDto,
   ChatSessionDto,
@@ -19,20 +18,23 @@ import {
   SendMessageResponseDto,
 } from '@brightwheel/shared'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface'
 import { ChatService } from './chat.service'
 import { CreateSessionDto } from './dto/create-session.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { UpdateStateDto } from './dto/update-state.dto'
+import { RequestUser } from '../auth/strategies/jwt.strategy'
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
+  @Get()
+  getLive(@Request() req: { user: RequestUser }) {
+    return this.chatService.findLiveBySchool(req.user.schoolId)
+  }
+
   @Post('sessions')
-  async createSession(
-    @Body() dto: CreateSessionDto,
-  ): Promise<CreateChatSessionResponseDto> {
+  async createSession(@Body() dto: CreateSessionDto): Promise<CreateChatSessionResponseDto> {
     const session = await this.chatService.createSession(
       dto.schoolId,
       dto.parentName,
@@ -53,30 +55,29 @@ export class ChatController {
   }
 
   @Get('sessions/:sessionToken/messages')
-  async listMessages(
-    @Param('sessionToken') sessionToken: string,
-  ): Promise<ChatMessageDto[]> {
+  async listMessages(@Param('sessionToken') sessionToken: string): Promise<ChatMessageDto[]> {
     return this.chatService.listMessages(sessionToken)
   }
 
   @Get('conversations')
   @UseGuards(JwtAuthGuard)
   async listConversations(
-    @Req() req: Request,
+    @Request() req: { user: RequestUser },
     @Query('inboxState') inboxState?: InboxState,
   ): Promise<ChatSessionDto[]> {
-    const user = req.user as JwtPayload
-    return this.chatService.listConversationsForSchool(user.schoolId, inboxState)
+    return this.chatService.listConversationsForSchool(req.user.schoolId, inboxState)
   }
 
   @Get('conversations/:id')
   @UseGuards(JwtAuthGuard)
   async getConversation(
     @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: Request,
+    @Request() req: { user: RequestUser },
   ): Promise<{ session: ChatSessionDto; messages: ChatMessageDto[] }> {
-    const user = req.user as JwtPayload
-    return this.chatService.getConversationForStaff(id, user)
+    return this.chatService.getConversationForStaff(id, {
+      sub: req.user.staffUserId,
+      schoolId: req.user.schoolId,
+    })
   }
 
   @Post('conversations/:id/replies')
@@ -84,10 +85,13 @@ export class ChatController {
   async reply(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: SendMessageDto,
-    @Req() req: Request,
+    @Request() req: { user: RequestUser },
   ): Promise<ChatMessageDto> {
-    const user = req.user as JwtPayload
-    return this.chatService.postStaffReply(id, user, dto.content)
+    return this.chatService.postStaffReply(
+      id,
+      { sub: req.user.staffUserId, schoolId: req.user.schoolId },
+      dto.content,
+    )
   }
 
   @Patch('conversations/:id/state')
@@ -95,9 +99,12 @@ export class ChatController {
   async updateState(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateStateDto,
-    @Req() req: Request,
+    @Request() req: { user: RequestUser },
   ): Promise<ChatSessionDto> {
-    const user = req.user as JwtPayload
-    return this.chatService.updateInboxState(id, user, dto.inboxState)
+    return this.chatService.updateInboxState(
+      id,
+      { sub: req.user.staffUserId, schoolId: req.user.schoolId },
+      dto.inboxState,
+    )
   }
 }

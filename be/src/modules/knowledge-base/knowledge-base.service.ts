@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IsNull } from 'typeorm'
+import { ILike, IsNull } from 'typeorm'
 import { Repository } from 'typeorm'
 import { AiService } from '../ai/ai.service'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
@@ -71,10 +71,7 @@ export class KnowledgeBaseService implements OnModuleInit {
         'entry.question AS question',
         'entry.answer AS answer',
       ])
-      .addSelect(
-        `1 - (entry.embedding::vector <=> :queryEmbedding::vector)`,
-        'similarity',
-      )
+      .addSelect(`1 - (entry.embedding::vector <=> :queryEmbedding::vector)`, 'similarity')
       .orderBy('similarity', 'DESC')
       .limit(MAX_RESULTS)
       .setParameter('queryEmbedding', embeddingLiteral)
@@ -97,10 +94,7 @@ export class KnowledgeBaseService implements OnModuleInit {
     }))
   }
 
-  private async textSearch(
-    schoolId: string,
-    question: string,
-  ): Promise<KbSearchResult[]> {
+  private async textSearch(schoolId: string, question: string): Promise<KbSearchResult[]> {
     const entries = await this.kbRepository.find({
       where: { schoolId, isActive: true },
     })
@@ -119,6 +113,26 @@ export class KnowledgeBaseService implements OnModuleInit {
       .slice(0, MAX_RESULTS)
 
     return scored
+  }
+
+  async findBySchool(schoolId: string, search?: string): Promise<KnowledgeBaseEntry[]> {
+    const baseWhere = { schoolId, isActive: true }
+
+    if (search?.trim()) {
+      const pattern = ILike(`%${search.trim()}%`)
+      return this.kbRepository.find({
+        where: [
+          { ...baseWhere, question: pattern },
+          { ...baseWhere, answer: pattern },
+        ],
+        order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
+      })
+    }
+
+    return this.kbRepository.find({
+      where: baseWhere,
+      order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
+    })
   }
 }
 
