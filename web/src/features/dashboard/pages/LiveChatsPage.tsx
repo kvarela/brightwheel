@@ -1,27 +1,31 @@
 import { Box, Text } from '@chakra-ui/react'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
 import { LiveChatsSection } from '../components/LiveChatsSection'
+import { BrightwheelLogo } from '../../../components/BrightwheelLogo'
 
 export function LiveChatsPage() {
   const navigate = useNavigate()
 
   return (
     <Box
-      minHeight="100vh"
       bg="#F7F9FB"
       fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
     >
       <Box
         as="header"
-        bg="white"
-        borderBottom="1px solid #EBEFF4"
+        bg="#1E2549"
         px={{ base: '16px', md: '40px' }}
         height="60px"
         display="flex"
         alignItems="center"
         gap="12px"
       >
+        <RouterLink to="/" style={{ textDecoration: 'none' }}>
+          <BrightwheelLogo />
+        </RouterLink>
+        <Box width="1px" height="18px" bg="rgba(255,255,255,0.15)" flexShrink={0} />
         <Box
           as="button"
           display="flex"
@@ -33,19 +37,19 @@ export function LiveChatsPage() {
           border="none"
           bg="transparent"
           cursor="pointer"
-          color="#5C5E6A"
-          _hover={{ bg: '#F7F9FB', color: '#5463D6' }}
+          color="rgba(255,255,255,0.6)"
+          _hover={{ bg: 'rgba(255,255,255,0.1)', color: 'white' }}
           transition="all 0.2s"
           onClick={() => navigate('/dashboard')}
           title="Back to dashboard"
         >
           <ArrowLeft size={18} />
         </Box>
-        <Box width="1px" height="18px" bg="#EBEFF4" flexShrink={0} />
+        <Box width="1px" height="18px" bg="rgba(255,255,255,0.15)" flexShrink={0} />
         <Text
           fontSize="18px"
           fontWeight={600}
-          color="#1E2549"
+          color="white"
           fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
         >
           Live Chats

@@ -72,7 +72,7 @@ export function Footer() {
           <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
             <VStack align="start" gap={4}>
               <RouterLink to="/" style={{ textDecoration: 'none' }}>
-                <BrightwheelLogo variant="light" />
+                <BrightwheelLogo />
               </RouterLink>
               <Text fontSize="14px" color="rgba(255,255,255,0.6)" lineHeight="1.6" maxW="220px">
                 The AI-powered front desk built for childcare centers.
