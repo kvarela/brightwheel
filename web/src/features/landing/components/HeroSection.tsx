@@ -1,23 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
-import { BwButton } from '../../../components/BwButton'
 import { useAuthStore } from '../../../store/authStore'
 import { SchoolSelectionModal } from '../../school/components/SchoolSelectionModal'
+import heroImg from '../../../assets/hero.avif'
 
 const ROLES = [
-  { id: 'admin', label: "I'm an admin or director" },
   { id: 'staff', label: "I'm a staff member" },
   { id: 'parent', label: "I'm a parent or guardian" },
 ]
 
 export function HeroSection() {
-  const [selectedRole, setSelectedRole] = useState<string | null>(null)
-  const { openLogin, openRegister } = useAuthStore()
+  const { openLogin } = useAuthStore()
   const [isSchoolModalOpen, setIsSchoolModalOpen] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (imgRef.current) {
+        imgRef.current.style.transform = `translateY(${window.scrollY * 0.35}px)`
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const handleRoleClick = (roleId: string) => {
-    setSelectedRole(roleId)
-    if (roleId === 'parent') {
+    if (roleId === 'staff') {
+      openLogin()
+    } else if (roleId === 'parent') {
       setIsSchoolModalOpen(true)
     }
   }
@@ -28,8 +38,35 @@ export function HeroSection() {
       bg="white"
       pt={{ base: '64px', md: '96px' }}
       pb={{ base: '64px', md: '96px' }}
+      position="relative"
+      overflow="hidden"
     >
-      <VStack gap={0} maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }}>
+      {/* Hero background image — oversized vertically so parallax never reveals a gap */}
+      <img
+        ref={imgRef}
+        src={heroImg}
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: '-15%',
+          left: 0,
+          width: '100%',
+          height: '130%',
+          objectFit: 'cover',
+          objectPosition: 'center 30%',
+          opacity: 0.18,
+          pointerEvents: 'none',
+          willChange: 'transform',
+        }}
+      />
+      {/* Gradient vignette to keep center text crisp */}
+      <Box
+        position="absolute"
+        inset={0}
+        bgGradient="radial(ellipse 55% 60% at 50% 45%, white 25%, transparent 75%)"
+        pointerEvents="none"
+      />
+      <VStack gap={0} maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }} position="relative" zIndex={1}>
         <VStack gap={6} maxW="760px" mx="auto" textAlign="center">
           <Box
             bg="#EEF0FC"
@@ -75,54 +112,28 @@ export function HeroSection() {
             Get started — choose your role
           </Text>
           <Flex direction={{ base: 'column', sm: 'row' }} gap={3} justify="center">
-            {ROLES.map((role) => {
-              const isSelected = selectedRole === role.id
-              return (
-                <Box
-                  key={role.id}
-                  as="button"
-                  onClick={() => handleRoleClick(role.id)}
-                  bg={isSelected ? '#5463D6' : 'white'}
-                  color={isSelected ? 'white' : '#18181D'}
-                  border={isSelected ? '1px solid #5463D6' : '1px solid #EBEFF4'}
-                  borderRadius="2px"
-                  px="16px"
-                  py="12px"
-                  fontSize="14px"
-                  fontWeight={600}
-                  cursor="pointer"
-                  flex={1}
-                  transition="all 0.2s ease"
-                  _hover={{
-                    borderColor: '#5463D6',
-                    color: isSelected ? 'white' : '#5463D6',
-                  }}
-                  boxShadow={
-                    isSelected ? '0 2px 8px rgba(84,99,214,0.3)' : '0 1px 3px rgba(0,0,0,0.06)'
-                  }
-                >
-                  {role.label}
-                </Box>
-              )
-            })}
-          </Flex>
-
-          <Flex direction="column" align="center" gap={4} mt={6}>
-            <BwButton
-              variant="primary"
-              w="full"
-              maxW="280px"
-              px="24px"
-              py="15px"
-              fontSize="16px"
-              boxShadow="0 4px 14px rgba(84,99,214,0.35)"
-              onClick={openRegister}
-            >
-              Get started free
-            </BwButton>
-            <BwButton variant="link" fontSize="14px" onClick={openLogin}>
-              Already using brightwheel? Log in →
-            </BwButton>
+            {ROLES.map((role) => (
+              <Box
+                key={role.id}
+                as="button"
+                onClick={() => handleRoleClick(role.id)}
+                bg="white"
+                color="#18181D"
+                border="1px solid #EBEFF4"
+                borderRadius="2px"
+                px="16px"
+                py="12px"
+                fontSize="14px"
+                fontWeight={600}
+                cursor="pointer"
+                flex={1}
+                transition="all 0.2s ease"
+                _hover={{ borderColor: '#5463D6', color: '#5463D6' }}
+                boxShadow="0 1px 3px rgba(0,0,0,0.06)"
+              >
+                {role.label}
+              </Box>
+            ))}
           </Flex>
         </Box>
 
