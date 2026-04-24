@@ -14,7 +14,8 @@ export function SchoolSelectionModal({ isOpen, onClose }: SchoolSelectionModalPr
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const debouncedQuery = useDebounce(query, 300)
-  const { data: schools, isLoading, isError, refetch } = useSchools(debouncedQuery.trim() || undefined)
+  const { data, isLoading, isError, refetch } = useSchools(debouncedQuery.trim() || undefined)
+  const schools = data ?? []
 
   useEffect(() => {
     if (!isOpen) return

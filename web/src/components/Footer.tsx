@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, GridItem, HStack, Text, VStack } from '@chakra-ui/react'
+import { Box, chakra, Flex, Grid, GridItem, HStack, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { BrightwheelLogo } from './BrightwheelLogo'
 
@@ -79,9 +79,8 @@ export function Footer() {
               </Text>
               <HStack gap={3} mt={2}>
                 {[TwitterIcon, LinkedInIcon, FacebookIcon, InstagramIcon, YouTubeIcon].map((Icon, i) => (
-                  <Box
+                  <chakra.a
                     key={i}
-                    as="a"
                     href="#"
                     color="rgba(255,255,255,0.5)"
                     cursor="pointer"
@@ -89,7 +88,7 @@ export function Footer() {
                     _hover={{ color: 'white' }}
                   >
                     <Icon />
-                  </Box>
+                  </chakra.a>
                 ))}
               </HStack>
             </VStack>
@@ -108,9 +107,8 @@ export function Footer() {
                   {col.heading}
                 </Text>
                 {col.links.map((link) => (
-                  <Text
+                  <chakra.a
                     key={link}
-                    as="a"
                     href="#"
                     fontSize="14px"
                     color="rgba(255,255,255,0.65)"
@@ -120,7 +118,7 @@ export function Footer() {
                     textDecoration="none"
                   >
                     {link}
-                  </Text>
+                  </chakra.a>
                 ))}
               </VStack>
             </GridItem>
@@ -139,9 +137,8 @@ export function Footer() {
             </Text>
             <HStack gap={6}>
               {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
-                <Text
+                <chakra.a
                   key={item}
-                  as="a"
                   href="#"
                   fontSize="13px"
                   color="rgba(255,255,255,0.4)"
@@ -150,7 +147,7 @@ export function Footer() {
                   textDecoration="none"
                 >
                   {item}
-                </Text>
+                </chakra.a>
               ))}
             </HStack>
           </Flex>

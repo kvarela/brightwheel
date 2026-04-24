@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
+import { Box, Button, chakra, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
 import { Eye, EyeOff } from 'lucide-react'
 import { apiClient } from '../../lib/apiClient'
 import { useAuthStore } from '../../store/authStore'
@@ -113,7 +113,7 @@ export function RegisterModal() {
             </Dialog.Header>
 
             <Dialog.Body pt="0">
-              <Box as="form" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
+              <chakra.form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
                 {/* Full name */}
                 <Box mb="4">
                   <Text fontSize="14px" fontWeight="500" color="#5C5E6A" mb="1">
@@ -348,7 +348,7 @@ export function RegisterModal() {
                     </BwButton>
                   </Text>
                 </Box>
-              </Box>
+              </chakra.form>
             </Dialog.Body>
           </Dialog.Content>
         </Dialog.Positioner>

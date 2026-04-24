@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, GridItem, Text, VStack } from '@chakra-ui/react'
+import { Box, chakra, Flex, Grid, GridItem, Text, VStack } from '@chakra-ui/react'
 
 const SUPPORT_FEATURES = [
   {
@@ -150,8 +150,7 @@ export function SupportSection() {
                   ))}
                 </VStack>
 
-                <Box
-                  as="a"
+                <chakra.a
                   href="#"
                   display="inline-flex"
                   alignItems="center"
@@ -169,7 +168,7 @@ export function SupportSection() {
                   textDecoration="none"
                 >
                   Get started free →
-                </Box>
+                </chakra.a>
               </VStack>
             </Box>
           </GridItem>
