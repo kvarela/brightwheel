@@ -26,10 +26,10 @@ const makeEntry = (overrides: Partial<KnowledgeBaseEntry> = {}): KnowledgeBaseEn
 
 describe('KnowledgeBaseService', () => {
   let service: KnowledgeBaseService
-  let repo: { find: jest.Mock }
+  let repo: { find: jest.Mock; create: jest.Mock; save: jest.Mock }
 
   beforeEach(async () => {
-    repo = { find: jest.fn() }
+    repo = { find: jest.fn(), create: jest.fn(), save: jest.fn() }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -80,6 +80,39 @@ describe('KnowledgeBaseService', () => {
         where: { schoolId: 'school-1', isActive: true },
         order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
       })
+    })
+  })
+
+  describe('create', () => {
+    it('creates a manual entry for the school, trimming question and answer', async () => {
+      const saved = makeEntry({
+        id: 'new-entry',
+        question: 'New question?',
+        answer: 'New answer.',
+        isBaseInquiry: false,
+        baseInquiryKey: null,
+      })
+      repo.create.mockImplementation((v: Partial<KnowledgeBaseEntry>) => v as KnowledgeBaseEntry)
+      repo.save.mockResolvedValue(saved)
+
+      const result = await service.create('school-1', {
+        question: '  New question?  ',
+        answer: '  New answer.  ',
+      })
+
+      expect(repo.create).toHaveBeenCalledWith({
+        schoolId: 'school-1',
+        question: 'New question?',
+        answer: 'New answer.',
+        source: KnowledgeBaseSource.Manual,
+        isBaseInquiry: false,
+        baseInquiryKey: null,
+        embedding: null,
+        handbookVersionId: null,
+        isActive: true,
+      })
+      expect(repo.save).toHaveBeenCalled()
+      expect(result).toEqual(saved)
     })
   })
 })

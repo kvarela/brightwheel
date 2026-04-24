@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import { Box, Badge, Text, Spinner, Stack, Input } from '@chakra-ui/react'
-import { Maximize2 } from 'lucide-react'
+import { Maximize2, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useKnowledgeBase } from '../hooks/useKnowledgeBase'
 import { KnowledgeBaseEntry, KnowledgeBaseSource } from '../types/KnowledgeBaseEntry'
+import { AddKnowledgeBaseEntryModal } from './AddKnowledgeBaseEntryModal'
 
 const SOURCE_LABELS: Record<KnowledgeBaseSource, string> = {
   manual: 'Manual',
@@ -96,6 +97,7 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -117,12 +119,11 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
       <Box
         display="flex"
         alignItems="center"
-        justifyContent="space-between"
         mb="16px"
         flexWrap="wrap"
         gap="12px"
       >
-        <Box display="flex" alignItems="center" gap="4px">
+        <Box display="flex" alignItems="center" gap="4px" flexShrink={0}>
           <Text
             fontSize="22px"
             fontWeight={600}
@@ -153,23 +154,46 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
             </Box>
           )}
         </Box>
-        <Input
-          placeholder="Search questions and answers…"
-          value={search}
-          onChange={handleSearchChange}
-          border="1px solid #EBEFF4"
+        <Box flex="1" display="flex" justifyContent="center" minWidth={{ base: '100%', md: '200px' }}>
+          <Input
+            placeholder="Search questions and answers…"
+            value={search}
+            onChange={handleSearchChange}
+            border="1px solid #EBEFF4"
+            borderRadius="2px"
+            padding="12px 16px"
+            fontSize="14px"
+            color="#18181D"
+            width={{ base: '100%', md: '320px' }}
+            _focus={{
+              borderColor: '#5463D6',
+              boxShadow: '0 0 0 3px rgba(84,99,214,0.15)',
+              outline: 'none',
+            }}
+            _placeholder={{ color: '#737685' }}
+          />
+        </Box>
+        <Box
+          as="button"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          width="40px"
+          height="40px"
           borderRadius="2px"
-          padding="12px 16px"
-          fontSize="14px"
-          color="#18181D"
-          width={{ base: '100%', md: '280px' }}
-          _focus={{
-            borderColor: '#5463D6',
-            boxShadow: '0 0 0 3px rgba(84,99,214,0.15)',
-            outline: 'none',
-          }}
-          _placeholder={{ color: '#737685' }}
-        />
+          border="1px solid #EBEFF4"
+          bg="white"
+          cursor="pointer"
+          color="#5463D6"
+          flexShrink={0}
+          _hover={{ bg: '#5463D6', color: 'white', borderColor: '#5463D6' }}
+          transition="all 0.2s"
+          onClick={() => setIsAddModalOpen(true)}
+          title="Add knowledge base entry"
+          aria-label="Add knowledge base entry"
+        >
+          <Plus size={18} />
+        </Box>
       </Box>
 
       {isLoading && (
@@ -234,6 +258,11 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
           )}
         </Box>
       )}
+
+      <AddKnowledgeBaseEntryModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+      />
     </Box>
   )
 }
