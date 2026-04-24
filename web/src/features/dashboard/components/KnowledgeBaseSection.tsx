@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import { Box, Badge, Text, Spinner, Stack, Input } from '@chakra-ui/react'
-import { Maximize2, Plus } from 'lucide-react'
+import { Maximize2, Plus, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useKnowledgeBase } from '../hooks/useKnowledgeBase'
+import { useClearKnowledgeBase } from '../hooks/useClearKnowledgeBase'
 import { KnowledgeBaseEntry, KnowledgeBaseSource } from '../types/KnowledgeBaseEntry'
 import { AddKnowledgeBaseEntryModal } from './AddKnowledgeBaseEntryModal'
+import { ClearKnowledgeBaseDialog } from './ClearKnowledgeBaseDialog'
 
 const SOURCE_LABELS: Record<KnowledgeBaseSource, string> = {
   manual: 'Manual',
@@ -98,7 +100,10 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false)
+  const [clearError, setClearError] = useState<string | null>(null)
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { mutateAsync: clearKnowledgeBase, isPending: isClearing } = useClearKnowledgeBase()
 
   function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
@@ -113,6 +118,28 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
 
   const baseInquiries = entries?.filter((e) => e.isBaseInquiry) ?? []
   const others = entries?.filter((e) => !e.isBaseInquiry) ?? []
+  const totalEntries = entries?.length ?? 0
+  const canClear = totalEntries > 0 && !debouncedSearch
+
+  function openClearDialog() {
+    setClearError(null)
+    setIsClearDialogOpen(true)
+  }
+
+  function closeClearDialog() {
+    setIsClearDialogOpen(false)
+    setClearError(null)
+  }
+
+  async function handleConfirmClear() {
+    setClearError(null)
+    try {
+      await clearKnowledgeBase()
+      setIsClearDialogOpen(false)
+    } catch {
+      setClearError('Failed to clear the knowledge base. Please try again.')
+    }
+  }
 
   return (
     <Box bg="white" borderRadius="2px" border="1px solid #EBEFF4" p="24px">
@@ -194,6 +221,35 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
         >
           <Plus size={18} />
         </Box>
+        <Box
+          as="button"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          width="40px"
+          height="40px"
+          borderRadius="2px"
+          border="1px solid #EBEFF4"
+          bg="white"
+          cursor={canClear ? 'pointer' : 'not-allowed'}
+          color={canClear ? '#CF193A' : '#737685'}
+          opacity={canClear ? 1 : 0.5}
+          flexShrink={0}
+          _hover={canClear ? { bg: '#CF193A', color: 'white', borderColor: '#CF193A' } : {}}
+          transition="all 0.2s"
+          onClick={canClear ? openClearDialog : undefined}
+          disabled={!canClear}
+          title={
+            totalEntries === 0
+              ? 'Knowledge base is already empty'
+              : debouncedSearch
+                ? 'Clear the search to enable clearing the knowledge base'
+                : 'Clear knowledge base'
+          }
+          aria-label="Clear knowledge base"
+        >
+          <Trash2 size={18} />
+        </Box>
       </Box>
 
       {isLoading && (
@@ -262,6 +318,15 @@ export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
       <AddKnowledgeBaseEntryModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+      />
+
+      <ClearKnowledgeBaseDialog
+        isOpen={isClearDialogOpen}
+        isClearing={isClearing}
+        errorMessage={clearError}
+        entryCount={totalEntries}
+        onCancel={closeClearDialog}
+        onConfirm={handleConfirmClear}
       />
     </Box>
   )
