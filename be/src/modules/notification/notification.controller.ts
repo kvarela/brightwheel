@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Req, UseGuards } from '@nestjs/common'
 import type { Request } from 'express'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface'
+import type { RequestUser } from '../auth/strategies/jwt.strategy'
 import { NotificationService } from './notification.service'
 
 @Controller('notifications')
@@ -13,15 +13,15 @@ export class NotificationController {
   async unreadCount(
     @Req() req: Request,
   ): Promise<{ unreadCount: number }> {
-    const user = req.user as JwtPayload
-    const count = await this.notificationService.unreadCountForStaff(user.sub)
+    const user = req.user as RequestUser
+    const count = await this.notificationService.unreadCountForStaff(user.staffUserId)
     return { unreadCount: count }
   }
 
   @Post('mark-all-read')
   async markAllRead(@Req() req: Request): Promise<{ ok: true }> {
-    const user = req.user as JwtPayload
-    await this.notificationService.markAllReadForStaff(user.sub)
+    const user = req.user as RequestUser
+    await this.notificationService.markAllReadForStaff(user.staffUserId)
     return { ok: true }
   }
 }
