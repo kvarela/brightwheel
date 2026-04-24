@@ -15,7 +15,6 @@ import {
   HandbookSignedUploadRequestDto,
   HandbookSignedUploadResponseDto,
   HandbookUploadStatus,
-  HandbookUploadStatusResponseDto,
   HandbookVersionStatus,
   KnowledgeBaseSource,
 } from '@brightwheel/shared'
@@ -147,32 +146,6 @@ export class HandbookUploadService {
       upload.errorMessage = message
       await this.uploadRepository.save(upload)
       throw error
-    }
-  }
-
-  async getUploadStatus(uploadId: string): Promise<HandbookUploadStatusResponseDto> {
-    const upload = await this.uploadRepository.findOne({ where: { id: uploadId } })
-    if (!upload) {
-      throw new NotFoundException(`Handbook upload ${uploadId} not found`)
-    }
-
-    let inquiriesExtracted = 0
-    if (upload.status === HandbookUploadStatus.Completed) {
-      const version = await this.versionRepository.findOne({
-        where: { uploadId: upload.id },
-      })
-      if (version) {
-        inquiriesExtracted = await this.diffRepository.count({
-          where: { handbookVersionId: version.id },
-        })
-      }
-    }
-
-    return {
-      uploadId: upload.id,
-      status: upload.status,
-      errorMessage: upload.errorMessage,
-      inquiriesExtracted,
     }
   }
 

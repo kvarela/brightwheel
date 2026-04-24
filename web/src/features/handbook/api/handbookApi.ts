@@ -4,7 +4,6 @@ import {
   HandbookSignedUploadRequestDto,
   HandbookSignedUploadResponseDto,
   HandbookUploadDetailDto,
-  HandbookUploadStatusResponseDto,
 } from '@brightwheel/shared'
 import { apiClient } from '../../../lib/apiClient'
 
@@ -43,20 +42,11 @@ export async function processHandbookUpload(
   return response.data
 }
 
-export async function getHandbookUploadStatus(
-  uploadId: string,
-): Promise<HandbookUploadStatusResponseDto> {
-  const response = await apiClient.get<HandbookUploadStatusResponseDto>(
-    `/api/handbook/uploads/${uploadId}`,
-  )
-  return response.data
-}
-
 export async function getHandbookUploadDetail(
   uploadId: string,
 ): Promise<HandbookUploadDetailDto> {
   const response = await apiClient.get<HandbookUploadDetailDto>(
-    `/api/handbook/uploads/${uploadId}/detail`,
+    `/api/handbook/uploads/${uploadId}`,
   )
   return response.data
 }

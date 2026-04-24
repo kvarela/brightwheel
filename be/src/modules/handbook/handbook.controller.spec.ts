@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { HandbookFileType, HandbookUploadStatus } from '@brightwheel/shared'
+
 import { HandbookController } from './handbook.controller'
 import { HandbookUploadService } from './services/handbook-upload.service'
 import { HandbookRequestContextService } from './services/handbook-request-context.service'
@@ -15,7 +16,6 @@ describe('HandbookController', () => {
     uploadService = {
       createSignedUpload: jest.fn(),
       processUpload: jest.fn(),
-      getUploadStatus: jest.fn(),
     } as unknown as jest.Mocked<HandbookUploadService>
 
     contextService = {
@@ -78,18 +78,6 @@ describe('HandbookController', () => {
     const result = await controller.processUpload({ uploadId: 'u1' })
     expect(uploadService.processUpload).toHaveBeenCalledWith('u1')
     expect(result.inquiriesExtracted).toBe(3)
-  })
-
-  it('delegates to the upload service for status lookups', async () => {
-    uploadService.getUploadStatus.mockResolvedValue({
-      uploadId: 'u1',
-      status: HandbookUploadStatus.Processing,
-      errorMessage: null,
-      inquiriesExtracted: 0,
-    })
-    const result = await controller.getUploadStatus('u1')
-    expect(uploadService.getUploadStatus).toHaveBeenCalledWith('u1')
-    expect(result.status).toBe(HandbookUploadStatus.Processing)
   })
 
   it('lists uploads for the authenticated staff user\'s school', async () => {
