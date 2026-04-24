@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { Box, Button, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
+import { Eye, EyeOff } from 'lucide-react'
 import { apiClient } from '../../lib/apiClient'
 import { useAuthStore } from '../../store/authStore'
 import { BwButton } from '../../components/BwButton'
@@ -12,6 +13,7 @@ import type { RegisterFormData } from './interfaces/RegisterFormData'
 
 export function RegisterModal() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [schoolSelection, setSchoolSelection] = useState<SchoolSelection | null>(null)
   const [schoolError, setSchoolError] = useState<string | null>(null)
   const { isRegisterOpen, closeRegister, switchToLogin, setToken } = useAuthStore()
@@ -23,7 +25,7 @@ export function RegisterModal() {
     setError,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>()
+  } = useForm<RegisterFormData>({ mode: 'onChange' })
 
   const handleClose = () => {
     reset()
@@ -202,8 +204,6 @@ export function RegisterModal() {
                       top="50%"
                       transform="translateY(-50%)"
                       color="#5C5E6A"
-                      fontSize="12px"
-                      fontWeight="600"
                       px="2"
                       h="auto"
                       minH="0"
@@ -211,12 +211,68 @@ export function RegisterModal() {
                       _hover={{ color: '#5463D6', bg: 'transparent' }}
                       onClick={() => setShowPassword((p) => !p)}
                       tabIndex={-1}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? 'Hide' : 'Show'}
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </Button>
                   </Box>
                   {errors.password && (
                     <Text color="#CF193A" fontSize="12px" mt="1">{errors.password.message}</Text>
+                  )}
+                </Box>
+
+                {/* Confirm password */}
+                <Box mb="4">
+                  <Text fontSize="14px" fontWeight="500" color="#5C5E6A" mb="1">
+                    Confirm password
+                  </Text>
+                  <Box position="relative">
+                    <Input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      border="1px solid"
+                      borderColor={errors.confirmPassword ? '#CF193A' : '#EBEFF4'}
+                      borderRadius="2px"
+                      px="4"
+                      py="3"
+                      pr="16"
+                      fontSize="16px"
+                      color="#18181D"
+                      bg="white"
+                      _placeholder={{ color: '#737685' }}
+                      _focus={{
+                        borderColor: '#5463D6',
+                        boxShadow: '0 0 0 3px rgba(84,99,214,0.15)',
+                        outline: 'none',
+                      }}
+                      {...register('confirmPassword', {
+                        required: 'Please confirm your password',
+                        validate: (val, { password }) =>
+                          val === password || 'Passwords do not match',
+                      })}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      position="absolute"
+                      right="2"
+                      top="50%"
+                      transform="translateY(-50%)"
+                      color="#5C5E6A"
+                      px="2"
+                      h="auto"
+                      minH="0"
+                      py="1"
+                      _hover={{ color: '#5463D6', bg: 'transparent' }}
+                      onClick={() => setShowConfirmPassword((p) => !p)}
+                      tabIndex={-1}
+                      aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </Button>
+                  </Box>
+                  {errors.confirmPassword && (
+                    <Text color="#CF193A" fontSize="12px" mt="1">{errors.confirmPassword.message}</Text>
                   )}
                 </Box>
 

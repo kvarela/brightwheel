@@ -38,8 +38,8 @@ export function SchoolSelect({ value, onChange, hasError }: SchoolSelectProps) {
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true)
       try {
-        const res = await apiClient.get<SchoolOption[]>('/api/schools/search', {
-          params: { q: query },
+        const res = await apiClient.get<SchoolOption[]>('/api/schools', {
+          params: { search: query },
         })
         setResults(res.data)
       } catch {
