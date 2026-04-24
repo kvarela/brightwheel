@@ -104,6 +104,7 @@ This is a yarn workspaces monorepo:
 - **One component per file.** Every React component lives in its own `.tsx` file. No barrel-style files that define multiple components.
 - **One interface per file.** Every TypeScript interface lives in its own `.ts` file under a `interfaces/` or `types/` directory co-located with the feature it belongs to.
 - **Type check and lint must pass before pushing.** Run `yarn typecheck` and `yarn lint` from either the `web/` directory or the monorepo root before every push. CI enforces this.
+- **Prefer icons over text labels.** Use `lucide-react` icons instead of text for actions where the meaning is clear from iconography alone (e.g. show/hide password, close, edit, delete). Only use text labels when an icon alone would be ambiguous.
 
 ### Backend Standards
 - **Unit tests required for all new features and bug fixes.** Every new service method, controller route, or utility added to the backend must have a corresponding `.spec.ts` unit test. Only external services (OpenAI, Anthropic, S3, etc.) are mocked; the test database is real.

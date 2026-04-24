@@ -1,11 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import * as bcrypt from 'bcryptjs'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
-import { LoginDto } from './dto/login.dto'
 import { JwtPayload } from './strategies/jwt.strategy'
+import { School } from '../school/entities/school.entity'
+import { StaffRole } from '../../../../packages/shared/src'
 
 export interface AuthResponse {
   accessToken: string
@@ -31,20 +37,22 @@ export interface MeResponse {
 export class AuthService {
   constructor(
     @InjectRepository(StaffUser)
-    private readonly staffUserRepo: Repository<StaffUser>,
-    private readonly jwtService: JwtService,
+    private staffUserRepo: Repository<StaffUser>,
+    @InjectRepository(School)
+    private schoolRepository: Repository<School>,
+    private jwtService: JwtService,
   ) {}
 
-  async login(dto: LoginDto, schoolId: string): Promise<AuthResponse> {
+  async login(email: string, password: string): Promise<{ accessToken: string }> {
     const staffUser = await this.staffUserRepo.findOne({
-      where: { email: dto.email, schoolId, isActive: true },
+      where: { email, isActive: true },
     })
 
     if (!staffUser) {
       throw new UnauthorizedException('Invalid credentials')
     }
 
-    const passwordValid = await bcrypt.compare(dto.password, staffUser.passwordHash)
+    const passwordValid = await bcrypt.compare(password, staffUser.passwordHash)
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials')
     }
@@ -57,13 +65,6 @@ export class AuthService {
 
     return {
       accessToken: this.jwtService.sign(payload),
-      staffUser: {
-        id: staffUser.id,
-        email: staffUser.email,
-        fullName: staffUser.fullName,
-        role: staffUser.role,
-        schoolId: staffUser.schoolId,
-      },
     }
   }
 
@@ -83,5 +84,74 @@ export class AuthService {
       schoolId: staffUser.schoolId,
       schoolName: staffUser.school.name,
     }
+  }
+
+  async register(
+    fullName: string,
+    email: string,
+    password: string,
+    schoolId: string | null | undefined,
+    newSchoolName: string | null | undefined,
+  ): Promise<{ accessToken: string }> {
+    const existing = await this.staffUserRepo.findOne({ where: { email } })
+    if (existing) {
+      throw new ConflictException('An account with this email already exists')
+    }
+
+    let school: School
+
+    if (schoolId) {
+      const found = await this.schoolRepository.findOne({ where: { id: schoolId } })
+      if (!found) throw new NotFoundException('School not found')
+      school = found
+    } else if (newSchoolName) {
+      const slug = this.toSlug(newSchoolName)
+      const uniqueSlug = await this.uniqueSlug(slug)
+      school = await this.schoolRepository.save({
+        name: newSchoolName,
+        slug: uniqueSlug,
+      })
+    } else {
+      throw new ConflictException('Either schoolId or newSchoolName is required')
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12)
+    const staffUser = await this.staffUserRepo.save({
+      fullName,
+      email,
+      passwordHash,
+      schoolId: school.id,
+      role: StaffRole.Admin,
+    })
+
+    return { accessToken: this.sign(staffUser) }
+  }
+
+  private sign(staffUser: StaffUser): string {
+    const payload: JwtPayload = {
+      sub: staffUser.id,
+      schoolId: staffUser.schoolId,
+      role: staffUser.role,
+    }
+    return this.jwtService.sign(payload)
+  }
+
+  private toSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+  }
+
+  private async uniqueSlug(base: string): Promise<string> {
+    let slug = base
+    let attempt = 0
+    while (await this.schoolRepository.findOne({ where: { slug } })) {
+      attempt++
+      slug = `${base}-${attempt}`
+    }
+    return slug
   }
 }
