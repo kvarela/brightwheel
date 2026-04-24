@@ -1,5 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { Box, chakra, Flex, Text, Textarea } from '@chakra-ui/react'
+import { Send } from 'lucide-react'
 
 interface ChatInputProps {
   onSend: (content: string) => void
@@ -72,16 +73,17 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             color={canSend ? 'white' : '#737685'}
             border="none"
             borderRadius="2px"
-            px="16px"
+            display="inline-flex"
+            alignItems="center"
+            justifyContent="center"
+            px="12px"
             py="8px"
-            fontSize="13px"
-            fontWeight={600}
             cursor={canSend ? 'pointer' : 'not-allowed'}
             transition="all 0.2s ease-in-out"
             _hover={canSend ? { bg: '#4352c5' } : undefined}
             flexShrink={0}
           >
-            Send
+            <Send size={18} strokeWidth={2} />
           </chakra.button>
         </Flex>
         <Text fontSize="11px" color="#737685" mt="8px" textAlign="center">
