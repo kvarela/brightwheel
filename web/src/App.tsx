@@ -10,9 +10,9 @@ export function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/dashboard" element={<div>Dashboard — coming soon</div>} />
+        <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
         {/* Feature routes are registered per feature module */}
       </Route>
-      <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
     </Routes>
   )
 }
