@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
-import { X, Plus } from 'lucide-react'
+import { ChevronRight, X, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
 import { useDeleteHandbookUpload } from '../hooks/useDeleteHandbookUpload'
@@ -52,17 +52,37 @@ function UploadRow({
   first: boolean
   onRequestDelete: (upload: HandbookUpload) => void
 }) {
-  const canDelete = upload.status !== 'completed'
+  const navigate = useNavigate()
+  const isCompleted = upload.status === 'completed'
+
+  const handleClick = () => {
+    if (isCompleted) {
+      navigate(`/handbook-uploads/${upload.id}`)
+    }
+  }
 
   return (
     <Box
+      as={isCompleted ? 'button' : 'div'}
+      type={isCompleted ? 'button' : undefined}
+      onClick={isCompleted ? handleClick : undefined}
+      width="100%"
+      textAlign="left"
+      bg="transparent"
+      border="none"
+      px={isCompleted ? '8px' : '0'}
+      mx={isCompleted ? '-8px' : '0'}
       py="14px"
       borderTop={first ? 'none' : '1px solid #EBEFF4'}
+      borderRadius={isCompleted ? '4px' : '0'}
       display="flex"
       alignItems="flex-start"
       justifyContent="space-between"
       flexWrap="wrap"
       gap="8px"
+      cursor={isCompleted ? 'pointer' : 'default'}
+      transition="background 0.15s"
+      _hover={isCompleted ? { bg: '#F7F9FB' } : undefined}
     >
       <Box>
         <Box display="flex" alignItems="center" gap="8px" flexWrap="wrap">
@@ -87,7 +107,8 @@ function UploadRow({
         <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
           {formatDate(upload.createdAt)}
         </Text>
-        {canDelete && (
+        {isCompleted && <ChevronRight size={16} color="#737685" />}
+        {!isCompleted && (
           <Box
             display="flex"
             alignItems="center"

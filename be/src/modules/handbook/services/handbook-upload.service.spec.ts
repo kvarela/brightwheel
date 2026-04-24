@@ -292,47 +292,4 @@ describe('HandbookUploadService', () => {
     })
   })
 
-  describe('getUploadStatus', () => {
-    it('returns the current status and inquiry count once processed', async () => {
-      const upload = await db.getRepository(HandbookUpload).save(
-        db.getRepository(HandbookUpload).create({
-          schoolId: school.id,
-          uploadedById: staff.id,
-          fileName: 'handbook.pdf',
-          fileType: HandbookFileType.Pdf,
-          fileKey: 'key',
-          status: HandbookUploadStatus.Pending,
-        }),
-      )
-
-      storageService.downloadObject.mockResolvedValue(Buffer.from('bytes'))
-      extractorService.extractText.mockResolvedValue(
-        'Handbook text that is long enough to parse.',
-      )
-      parserService.extractInquiries.mockResolvedValue([makeInquiry(), makeInquiry()])
-      await uploadService.processUpload(upload.id)
-
-      const status = await uploadService.getUploadStatus(upload.id)
-      expect(status.status).toBe(HandbookUploadStatus.Completed)
-      expect(status.inquiriesExtracted).toBe(2)
-      expect(status.errorMessage).toBeNull()
-    })
-
-    it('returns zero inquiries while still pending', async () => {
-      const upload = await db.getRepository(HandbookUpload).save(
-        db.getRepository(HandbookUpload).create({
-          schoolId: school.id,
-          uploadedById: staff.id,
-          fileName: 'handbook.pdf',
-          fileType: HandbookFileType.Pdf,
-          fileKey: 'key',
-          status: HandbookUploadStatus.Pending,
-        }),
-      )
-
-      const status = await uploadService.getUploadStatus(upload.id)
-      expect(status.status).toBe(HandbookUploadStatus.Pending)
-      expect(status.inquiriesExtracted).toBe(0)
-    })
-  })
 })

@@ -15,7 +15,7 @@ import {
 import {
   HandbookProcessResponseDto,
   HandbookSignedUploadResponseDto,
-  HandbookUploadStatusResponseDto,
+  HandbookUploadDetailDto,
 } from '@brightwheel/shared'
 import { CreateSignedUploadDto } from './dto/create-signed-upload.dto'
 import { ProcessHandbookDto } from './dto/process-handbook.dto'
@@ -51,17 +51,19 @@ export class HandbookController {
     return this.uploadService.processUpload(body.uploadId)
   }
 
-  @Get('uploads/:uploadId')
-  async getUploadStatus(
-    @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
-  ): Promise<HandbookUploadStatusResponseDto> {
-    return this.uploadService.getUploadStatus(uploadId)
-  }
-
   @Get()
   @UseGuards(JwtAuthGuard)
   getUploads(@Request() req: { user: StaffUser }) {
     return this.handbookService.findBySchool(req.user.schoolId)
+  }
+
+  @Get('uploads/:uploadId')
+  @UseGuards(JwtAuthGuard)
+  getUploadDetail(
+    @Request() req: { user: StaffUser },
+    @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
+  ): Promise<HandbookUploadDetailDto> {
+    return this.handbookService.findUploadDetail(req.user.schoolId, uploadId)
   }
 
   @Delete(':uploadId')
