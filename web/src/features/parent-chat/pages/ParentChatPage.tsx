@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex, Spinner, Text } from '@chakra-ui/react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { MessageRole } from '@brightwheel/shared'
-import type { ChatMessageDto } from '@brightwheel/shared'
+import type { ChatMessageDto, StaffReplyEventDto } from '@brightwheel/shared'
 import { useSchool } from '../../school/api/useSchool'
 import type { ParentChatMessage } from '../types/ParentChatMessage'
 import { ChatHeader } from '../components/ChatHeader'
@@ -10,6 +10,7 @@ import { ChatMessageList } from '../components/ChatMessageList'
 import { ChatInput } from '../components/ChatInput'
 import { useCreateSession } from '../api/useCreateSession'
 import { useSendMessage } from '../api/useSendMessage'
+import { useParentSocket } from '../../../hooks/useParentSocket'
 
 function createMessageId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -49,6 +50,16 @@ export function ParentChatPage() {
   const [messages, setMessages] = useState<ParentChatMessage[]>([])
   const [sessionToken, setSessionToken] = useState<string | null>(null)
   const [errorText, setErrorText] = useState<string | null>(null)
+
+  const handleStaffReply = useCallback((event: StaffReplyEventDto) => {
+    const msg = messageFromDto(event.message)
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg]
+    })
+  }, [])
+
+  useParentSocket({ sessionToken, onStaffReply: handleStaffReply })
 
   const createSession = useCreateSession()
   const sendMessage = useSendMessage()

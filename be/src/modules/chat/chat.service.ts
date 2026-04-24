@@ -20,6 +20,7 @@ import { AiService } from '../ai/ai.service'
 import { KnowledgeBaseService } from '../knowledge-base/knowledge-base.service'
 import { NotificationService } from '../notification/notification.service'
 import { NotificationGateway } from '../notification/notification.gateway'
+import { ParentGateway } from '../notification/parent.gateway'
 import { School } from '../school/entities/school.entity'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
 import { ChatSession } from './entities/chat-session.entity'
@@ -43,6 +44,7 @@ export class ChatService {
     private readonly kbService: KnowledgeBaseService,
     private readonly notificationService: NotificationService,
     private readonly notificationGateway: NotificationGateway,
+    private readonly parentGateway: ParentGateway,
   ) {}
 
   async createSession(
@@ -261,7 +263,14 @@ export class ChatService {
     const staffUser = await this.staffUserRepository.findOne({
       where: { id: staff.sub },
     })
-    return this.toMessageDto(message, staffUser?.fullName ?? null)
+    const messageDto = this.toMessageDto(message, staffUser?.fullName ?? null)
+
+    this.parentGateway.emitStaffReply({
+      chatSessionId: session.id,
+      message: messageDto,
+    })
+
+    return messageDto
   }
 
   async updateInboxState(
