@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
-import { Link as RouterLink } from 'react-router-dom'
+import { BwButton } from '../../../components/BwButton'
+import { useAuthStore } from '../../../store/authStore'
 
 const ROLES = [
   { id: 'admin', label: "I'm an admin or director" },
@@ -10,6 +11,7 @@ const ROLES = [
 
 export function HeroSection() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
+  const { openLogin, openRegister } = useAuthStore()
 
   return (
     <Box as="section" bg="white" pt={{ base: '64px', md: '96px' }} pb={{ base: '64px', md: '96px' }}>
@@ -94,36 +96,25 @@ export function HeroSection() {
           </Flex>
 
           <Flex direction="column" align="center" gap={4} mt={6}>
-            <RouterLink to="/login" style={{ textDecoration: 'none', width: '100%', maxWidth: '280px' }}>
-              <Box
-                as="button"
-                w="full"
-                bg="#5463D6"
-                color="white"
-                border="none"
-                borderRadius="2px"
-                px="24px"
-                py="15px"
-                fontSize="16px"
-                fontWeight={600}
-                cursor="pointer"
-                transition="all 0.3s ease-in-out"
-                _hover={{ bg: '#4352c5' }}
-                boxShadow="0 4px 14px rgba(84,99,214,0.35)"
-              >
-                Get started free
-              </Box>
-            </RouterLink>
-            <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-              <Text
-                fontSize="14px"
-                color="#5463D6"
-                cursor="pointer"
-                _hover={{ textDecoration: 'underline' }}
-              >
-                Already using brightwheel? Log in →
-              </Text>
-            </RouterLink>
+            <BwButton
+              variant="primary"
+              w="full"
+              maxW="280px"
+              px="24px"
+              py="15px"
+              fontSize="16px"
+              boxShadow="0 4px 14px rgba(84,99,214,0.35)"
+              onClick={openRegister}
+            >
+              Get started free
+            </BwButton>
+            <BwButton
+              variant="link"
+              fontSize="14px"
+              onClick={openLogin}
+            >
+              Already using brightwheel? Log in →
+            </BwButton>
           </Flex>
         </Box>
 

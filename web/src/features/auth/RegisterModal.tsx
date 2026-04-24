@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Button, CloseButton, Dialog, Input, Portal, Text } from '@chakra-ui/react'
 import { apiClient } from '../../lib/apiClient'
 import { useAuthStore } from '../../store/authStore'
+import { BwButton } from '../../components/BwButton'
 import { Loader } from '../../components/Loader'
 import { SchoolSelect } from './components/SchoolSelect'
 import type { SchoolSelection } from './components/SchoolSelect'
@@ -258,43 +259,29 @@ export function RegisterModal() {
                 )}
 
                 {/* Submit */}
-                <Button
+                <BwButton
                   type="submit"
                   w="full"
-                  bg="#5463D6"
-                  color="white"
-                  borderRadius="2px"
                   h="auto"
                   py="4"
                   fontSize="16px"
-                  fontWeight="600"
                   disabled={isSubmitting}
-                  _hover={{ bg: '#4453C5', transition: 'all 0.3s ease-in-out' }}
-                  _active={{ bg: '#3A47B0' }}
-                  _disabled={{ opacity: 0.7, cursor: 'not-allowed' }}
                 >
                   {isSubmitting ? <Loader size="sm" text="Creating account…" inline /> : 'Create account'}
-                </Button>
+                </BwButton>
 
                 {/* Switch to login */}
                 <Box textAlign="center" mt="5">
                   <Text fontSize="14px" color="#5C5E6A">
                     Already have an account?{' '}
-                    <Box
-                      as="button"
+                    <BwButton
+                      variant="link"
                       type="button"
-                      color="#5463D6"
-                      fontWeight="600"
                       fontSize="14px"
-                      bg="transparent"
-                      border="none"
-                      cursor="pointer"
-                      p="0"
-                      _hover={{ textDecoration: 'underline' }}
                       onClick={switchToLogin}
                     >
                       Log in
-                    </Box>
+                    </BwButton>
                   </Text>
                 </Box>
               </Box>
