@@ -116,6 +116,35 @@ export class KnowledgeBaseService implements OnModuleInit {
     return scored
   }
 
+  // Creates a KB entry from a resolved escalation (parent question + staff reply).
+  // Returns null if an entry already exists for this chat session (dedupe).
+  async createFromEscalation(params: {
+    schoolId: string
+    chatSessionId: string
+    question: string
+    answer: string
+  }): Promise<KnowledgeBaseEntry | null> {
+    const existing = await this.kbRepository.findOne({
+      where: { sourceChatSessionId: params.chatSessionId },
+    })
+    if (existing) return null
+
+    const embedding = await this.aiService.generateEmbedding(
+      `${params.question} ${params.answer}`,
+    )
+
+    const entry = this.kbRepository.create({
+      schoolId: params.schoolId,
+      question: params.question,
+      answer: params.answer,
+      source: KnowledgeBaseSource.EscalationLearning,
+      sourceChatSessionId: params.chatSessionId,
+      embedding: embedding ?? null,
+      isActive: true,
+    })
+    return this.kbRepository.save(entry)
+  }
+
   async findBySchool(schoolId: string, search?: string): Promise<KnowledgeBaseEntry[]> {
     const baseWhere = { schoolId, isActive: true }
 

@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto'
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
@@ -26,6 +26,8 @@ import { MessageKnowledgeBaseEntry } from './entities/message-knowledge-base-ent
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name)
+
   constructor(
     @InjectRepository(ChatSession)
     private readonly sessionRepository: Repository<ChatSession>,
@@ -268,6 +270,8 @@ export class ChatService {
     if (!session) throw new NotFoundException('Conversation not found')
     if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
 
+    const wasResolved = session.inboxState === InboxState.Resolved
+
     session.inboxState = inboxState
     if (inboxState === InboxState.Resolved) {
       session.status = ChatSessionStatus.Resolved
@@ -276,7 +280,58 @@ export class ChatService {
       session.assignedStaffId = staff.sub
     }
     await this.sessionRepository.save(session)
+
+    if (inboxState === InboxState.Resolved && !wasResolved) {
+      try {
+        await this.addEscalationAnswerToKnowledgeBase(session)
+      } catch (err) {
+        // KB promotion is best-effort — never fail a resolve because of it.
+        this.logger.error(
+          `Failed to add escalation answer to KB for session ${session.id}`,
+          err as Error,
+        )
+      }
+    }
+
     return this.toSessionDto(session)
+  }
+
+  // When an escalated conversation is resolved, promote the (parent question →
+  // staff answer) pair into the school's knowledge base so the AI can handle
+  // the same question next time. Uses the parent message that triggered the
+  // escalation and the most recent staff reply as the authoritative answer.
+  private async addEscalationAnswerToKnowledgeBase(session: ChatSession): Promise<void> {
+    const trigger = await this.messageRepository.findOne({
+      where: {
+        chatSessionId: session.id,
+        role: MessageRole.Ai,
+        isEscalationTrigger: true,
+      },
+      order: { createdAt: 'ASC' },
+    })
+    if (!trigger) return
+
+    const parentQuestion = await this.messageRepository
+      .createQueryBuilder('m')
+      .where('m.chatSessionId = :sessionId', { sessionId: session.id })
+      .andWhere('m.role = :role', { role: MessageRole.Parent })
+      .andWhere('m.createdAt <= :triggerAt', { triggerAt: trigger.createdAt })
+      .orderBy('m.createdAt', 'DESC')
+      .getOne()
+    if (!parentQuestion) return
+
+    const staffAnswer = await this.messageRepository.findOne({
+      where: { chatSessionId: session.id, role: MessageRole.Staff },
+      order: { createdAt: 'DESC' },
+    })
+    if (!staffAnswer) return
+
+    await this.kbService.createFromEscalation({
+      schoolId: session.schoolId,
+      chatSessionId: session.id,
+      question: parentQuestion.content,
+      answer: staffAnswer.content,
+    })
   }
 
   private async loadMessagesForSession(sessionId: string): Promise<ChatMessageDto[]> {

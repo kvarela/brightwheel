@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -48,6 +49,12 @@ export class KnowledgeBaseEntry {
   @ManyToOne(() => HandbookVersion, { nullable: true })
   @JoinColumn({ name: 'handbookVersionId' })
   handbookVersion: HandbookVersion | null
+
+  // Set when this entry was auto-created from a staff reply to an escalated chat session.
+  // One KB entry per session; acts as dedupe + provenance.
+  @Index({ unique: true, where: '"sourceChatSessionId" IS NOT NULL' })
+  @Column({ type: 'uuid', nullable: true })
+  sourceChatSessionId: string | null
 
   @Column({ default: true })
   isActive: boolean
