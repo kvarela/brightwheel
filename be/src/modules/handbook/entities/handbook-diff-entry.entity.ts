@@ -27,7 +27,7 @@ export class HandbookDiffEntry {
   @JoinColumn({ name: 'handbookVersionId' })
   handbookVersion: HandbookVersion
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   knowledgeBaseEntryId: string | null
 
   // null means this is a proposed addition (no existing entry to update/delete)

@@ -23,10 +23,10 @@ export class ChatSession {
   @JoinColumn({ name: 'schoolId' })
   school: School
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   parentName: string | null
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   parentEmail: string | null
 
   @Column({ unique: true })
@@ -43,7 +43,7 @@ export class ChatSession {
   @Column({ type: 'enum', enum: InboxState, nullable: true })
   inboxState: InboxState | null
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   assignedStaffId: string | null
 
   @ManyToOne(() => StaffUser, { nullable: true })

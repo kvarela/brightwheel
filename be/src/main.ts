@@ -7,6 +7,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
   app.enableCors()
-  await app.listen(process.env.PORT ?? 3000)
+  const port = process.env.PORT ?? 3000
+  await app.listen(port)
+
+  console.log('Starting Brightwheel BE on port ' + port)
 }
 bootstrap()

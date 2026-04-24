@@ -42,7 +42,7 @@ export class KnowledgeBaseEntry {
   @Column({ type: 'enum', enum: KnowledgeBaseSource })
   source: KnowledgeBaseSource
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   handbookVersionId: string | null
 
   @ManyToOne(() => HandbookVersion, { nullable: true })

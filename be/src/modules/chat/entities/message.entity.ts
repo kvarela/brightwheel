@@ -35,7 +35,7 @@ export class Message {
   @Column({ default: false })
   isEscalationTrigger: boolean
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   sentByStaffId: string | null
 
   @ManyToOne(() => StaffUser, { nullable: true })

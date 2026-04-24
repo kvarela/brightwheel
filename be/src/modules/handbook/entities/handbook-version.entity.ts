@@ -42,7 +42,7 @@ export class HandbookVersion {
   })
   status: HandbookVersionStatus
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   reviewedById: string | null
 
   @ManyToOne(() => StaffUser, { nullable: true })
