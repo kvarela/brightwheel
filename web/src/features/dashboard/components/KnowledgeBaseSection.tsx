@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react'
 import { Box, Badge, Text, Spinner, Stack, Input } from '@chakra-ui/react'
+import { Maximize2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useKnowledgeBase } from '../hooks/useKnowledgeBase'
 import { KnowledgeBaseEntry, KnowledgeBaseSource } from '../types/KnowledgeBaseEntry'
 
@@ -90,7 +92,8 @@ function EntryRow({ entry, first }: { entry: KnowledgeBaseEntry; first: boolean 
   )
 }
 
-export function KnowledgeBaseSection() {
+export function KnowledgeBaseSection({ fullPage }: { fullPage?: boolean }) {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -119,14 +122,37 @@ export function KnowledgeBaseSection() {
         flexWrap="wrap"
         gap="12px"
       >
-        <Text
-          fontSize="22px"
-          fontWeight={600}
-          color="#18181D"
-          fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
-        >
-          Knowledge Base
-        </Text>
+        <Box display="flex" alignItems="center" gap="4px">
+          <Text
+            fontSize="22px"
+            fontWeight={600}
+            color="#18181D"
+            fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
+          >
+            Knowledge Base
+          </Text>
+          {!fullPage && (
+            <Box
+              as="button"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              width="32px"
+              height="32px"
+              borderRadius="2px"
+              border="none"
+              bg="transparent"
+              cursor="pointer"
+              color="#737685"
+              _hover={{ bg: '#F7F9FB', color: '#5463D6' }}
+              transition="all 0.2s"
+              onClick={() => navigate('/dashboard/knowledge-base')}
+              title="Open full view"
+            >
+              <Maximize2 size={16} />
+            </Box>
+          )}
+        </Box>
         <Input
           placeholder="Search questions and answers…"
           value={search}

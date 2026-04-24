@@ -1,1 +1,7 @@
+export * from './handbook-signed-upload-request.dto'
+export * from './handbook-signed-upload-response.dto'
+export * from './handbook-process-request.dto'
+export * from './handbook-process-response.dto'
+export * from './handbook-upload-status-response.dto'
+export * from './extracted-inquiry.dto'
 export * from './school.dto'
