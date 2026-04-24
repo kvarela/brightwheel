@@ -24,7 +24,7 @@ brightwheel/
 │   │   ├── conversation/
 │   │   ├── chat/               # WebSocket gateway
 │   │   ├── ai/                 # AI service (embeddings + generation)
-│   │   ├── storage/            # Render object storage client
+│   │   ├── storage/            # AWS S3 client
 │   │   ├── notification/       # Operator WebSocket gateway
 │   │   ├── config/
 │   │   ├── database/
@@ -89,7 +89,7 @@ brightwheel/
 | Database        | PostgreSQL 16 + pgvector extension                             |
 | Auth            | JWT (single long-lived token, 10-year expiry)                  |
 | Real-time       | `@nestjs/websockets` with `socket.io`                          |
-| File storage    | Render Object Storage (S3-compatible via `@aws-sdk/client-s3`) |
+| File storage    | AWS S3 (via `@aws-sdk/client-s3`)                              |
 | AI — embeddings | OpenAI `text-embedding-3-small` (1536 dimensions)              |
 | AI — generation | Anthropic `claude-sonnet-4-6`                                  |
 | Testing         | Jest + Supertest, real test DB                                 |
@@ -109,7 +109,7 @@ AppModule
 ├── ChatModule            (WebSocket gateway — parent chat)
 ├── NotificationModule    (WebSocket gateway — operator notifications)
 ├── AIModule              (embedding + generation services)
-└── StorageModule         (Render object storage client)
+└── StorageModule         (AWS S3 client)
 ```
 
 ### 3.3 Database Schema
@@ -420,7 +420,7 @@ On connect to `/notifications`, the server joins the socket to a `school:{school
 
 ### 3.8 File Storage
 
-`StorageService` wraps the AWS SDK v3 `S3Client` pointed at Render Object Storage.
+`StorageService` wraps the AWS SDK v3 `S3Client` pointed at AWS S3.
 
 ```typescript
 interface StorageService {
@@ -585,7 +585,7 @@ Defined in `render.yaml` (Render IaC):
 | `web`   | Static Site          | `yarn workspace web build` | —                   |
 | `db`    | PostgreSQL (managed) | —                          | —                   |
 
-Object Storage: one Render Object Storage bucket (`brightwheel-handbooks`). Credentials injected as env vars into the `api` service.
+Object Storage: one AWS S3 bucket (`brightwheel-handbooks`). Credentials injected as env vars into the `api` service.
 
 ### 5.2 Environment Variables
 
@@ -598,10 +598,10 @@ JWT_SECRET=
 JWT_EXPIRY=10y
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
-RENDER_STORAGE_ENDPOINT=https://...
-RENDER_STORAGE_ACCESS_KEY=
-RENDER_STORAGE_SECRET_KEY=
-RENDER_STORAGE_BUCKET=brightwheel-handbooks
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+S3_BUCKET=brightwheel-handbooks
 PORT=3000
 NODE_ENV=development
 ```
@@ -787,10 +787,10 @@ jobs:
           # External services are mocked; these are placeholders
           OPENAI_API_KEY: test
           ANTHROPIC_API_KEY: test
-          RENDER_STORAGE_ENDPOINT: http://localhost
-          RENDER_STORAGE_ACCESS_KEY: test
-          RENDER_STORAGE_SECRET_KEY: test
-          RENDER_STORAGE_BUCKET: test
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          S3_BUCKET: test
         run: yarn workspace be test:e2e && yarn workspace be test
 ```
 

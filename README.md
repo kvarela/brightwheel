@@ -72,7 +72,7 @@ A yarn workspaces monorepo deploying to Render. Full details in
 | Backend | NestJS + TypeScript, TypeORM, `@nestjs/websockets` over `socket.io` |
 | Database | PostgreSQL 16 with `pgvector` for semantic similarity search |
 | AI | OpenAI `text-embedding-3-small` (1536-dim) for retrieval; Anthropic `claude-sonnet-4-6` for generation and handbook extraction |
-| Storage | Render Object Storage (S3-compatible) for handbook files |
+| Storage | AWS S3 for handbook files |
 | Hosting | Render — web service for the API, static site for the web app, managed Postgres |
 | Auth | JWT (operator + parent session tokens) |
 | Testing | Jest + Supertest against a real PostgreSQL test database; only third-party SDKs are mocked |
@@ -126,7 +126,8 @@ yarn test:e2e                    # backend integration tests
 
 Required env vars (see `tech-spec.md` §5.2): `DATABASE_URL`,
 `DATABASE_URL_TEST`, `JWT_SECRET`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and
-the `RENDER_STORAGE_*` credentials.
+the AWS S3 credentials (`AWS_REGION`, `AWS_ACCESS_KEY_ID`,
+`AWS_SECRET_ACCESS_KEY`, `S3_BUCKET`).
 
 ---
 
