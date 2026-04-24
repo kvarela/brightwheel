@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Post, Query, Request, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/auth.guard'
 import { RequestUser } from '../auth/strategies/jwt.strategy'
 import { KnowledgeBaseService } from './knowledge-base.service'
@@ -23,5 +23,10 @@ export class KnowledgeBaseController {
     @Body() dto: CreateKnowledgeBaseEntryDto,
   ) {
     return this.kbService.create(req.user.schoolId, dto)
+  }
+
+  @Delete()
+  clearAll(@Request() req: { user: RequestUser }) {
+    return this.kbService.clearAllForSchool(req.user.schoolId)
   }
 }

@@ -179,6 +179,11 @@ export class KnowledgeBaseService implements OnModuleInit {
     })
     return this.kbRepository.save(entry)
   }
+
+  async clearAllForSchool(schoolId: string): Promise<{ deletedCount: number }> {
+    const result = await this.kbRepository.delete({ schoolId })
+    return { deletedCount: result.affected ?? 0 }
+  }
 }
 
 function tokenize(text: string): Set<string> {

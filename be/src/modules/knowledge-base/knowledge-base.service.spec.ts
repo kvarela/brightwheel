@@ -148,4 +148,87 @@ describe('KnowledgeBaseService', () => {
       expect(stored.answer).toBe('New answer.')
     })
   })
+
+  describe('clearAllForSchool', () => {
+    it('deletes all entries for the school and reports the count', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
+      })
+      await kbRepo.save([
+        {
+          schoolId: school.id,
+          question: 'Q1',
+          answer: 'A1',
+          source: KnowledgeBaseSource.Manual,
+        },
+        {
+          schoolId: school.id,
+          question: 'Q2',
+          answer: 'A2',
+          source: KnowledgeBaseSource.HandbookExtraction,
+        },
+        {
+          schoolId: school.id,
+          question: 'Q3',
+          answer: 'A3',
+          source: KnowledgeBaseSource.Manual,
+          isActive: false,
+        },
+      ])
+
+      const result = await service.clearAllForSchool(school.id)
+
+      expect(result.deletedCount).toBe(3)
+      const remaining = await kbRepo.find({ where: { schoolId: school.id } })
+      expect(remaining).toEqual([])
+    })
+
+    it('does not delete entries from other schools', async () => {
+      const schoolA = await schoolRepo.save({
+        name: 'A',
+        slug: 'a',
+        isActive: true,
+      })
+      const schoolB = await schoolRepo.save({
+        name: 'B',
+        slug: 'b',
+        isActive: true,
+      })
+      await kbRepo.save([
+        {
+          schoolId: schoolA.id,
+          question: 'A-Q',
+          answer: 'A-A',
+          source: KnowledgeBaseSource.Manual,
+        },
+        {
+          schoolId: schoolB.id,
+          question: 'B-Q',
+          answer: 'B-A',
+          source: KnowledgeBaseSource.Manual,
+        },
+      ])
+
+      const result = await service.clearAllForSchool(schoolA.id)
+
+      expect(result.deletedCount).toBe(1)
+      const bRemaining = await kbRepo.find({ where: { schoolId: schoolB.id } })
+      expect(bRemaining).toHaveLength(1)
+      expect(bRemaining[0].question).toBe('B-Q')
+    })
+
+    it('returns zero when the school has no entries', async () => {
+      const school = await schoolRepo.save({
+        name: 'Empty',
+        slug: 'empty',
+        isActive: true,
+      })
+
+      const result = await service.clearAllForSchool(school.id)
+
+      expect(result.deletedCount).toBe(0)
+    })
+  })
 })
