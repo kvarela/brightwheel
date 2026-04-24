@@ -50,3 +50,7 @@ export async function getHandbookUploadStatus(
   )
   return response.data
 }
+
+export async function deleteHandbookUpload(uploadId: string): Promise<void> {
+  await apiClient.delete(`/api/handbook/${uploadId}`)
+}

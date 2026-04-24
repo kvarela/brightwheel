@@ -24,6 +24,7 @@ describe('HandbookController', () => {
 
     handbookService = {
       findBySchool: jest.fn(),
+      deleteUpload: jest.fn(),
     } as unknown as jest.Mocked<HandbookService>
 
     const moduleRef = await Test.createTestingModule({
@@ -100,5 +101,14 @@ describe('HandbookController', () => {
 
     expect(handbookService.findBySchool).toHaveBeenCalledWith('school-42')
     expect(result).toBe(uploads)
+  })
+
+  it('deletes an upload scoped to the authenticated staff user\'s school', async () => {
+    handbookService.deleteUpload.mockResolvedValue(undefined)
+    const req = { user: { schoolId: 'school-42' } } as never
+
+    await controller.deleteUpload('upload-1', req)
+
+    expect(handbookService.deleteUpload).toHaveBeenCalledWith('upload-1', 'school-42')
   })
 })

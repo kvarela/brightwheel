@@ -1,3 +1,4 @@
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { getRepositoryToken } from '@nestjs/typeorm'
 import { HandbookService } from './handbook.service'
@@ -23,10 +24,10 @@ const makeUpload = (overrides: Partial<HandbookUpload> = {}): HandbookUpload =>
 
 describe('HandbookService', () => {
   let service: HandbookService
-  let repo: { find: jest.Mock }
+  let repo: { find: jest.Mock; findOne: jest.Mock; remove: jest.Mock }
 
   beforeEach(async () => {
-    repo = { find: jest.fn() }
+    repo = { find: jest.fn(), findOne: jest.fn(), remove: jest.fn() }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -57,6 +58,58 @@ describe('HandbookService', () => {
       repo.find.mockResolvedValue([])
       const result = await service.findBySchool('school-1')
       expect(result).toEqual([])
+    })
+  })
+
+  describe('deleteUpload', () => {
+    it('removes a pending upload scoped to the school', async () => {
+      const upload = makeUpload({ status: HandbookUploadStatus.Pending })
+      repo.findOne.mockResolvedValue(upload)
+
+      await service.deleteUpload('upload-1', 'school-1')
+
+      expect(repo.findOne).toHaveBeenCalledWith({
+        where: { id: 'upload-1', schoolId: 'school-1' },
+      })
+      expect(repo.remove).toHaveBeenCalledWith(upload)
+    })
+
+    it('removes a failed upload', async () => {
+      const upload = makeUpload({ status: HandbookUploadStatus.Failed })
+      repo.findOne.mockResolvedValue(upload)
+
+      await service.deleteUpload('upload-1', 'school-1')
+
+      expect(repo.remove).toHaveBeenCalledWith(upload)
+    })
+
+    it('removes a processing upload', async () => {
+      const upload = makeUpload({ status: HandbookUploadStatus.Processing })
+      repo.findOne.mockResolvedValue(upload)
+
+      await service.deleteUpload('upload-1', 'school-1')
+
+      expect(repo.remove).toHaveBeenCalledWith(upload)
+    })
+
+    it('throws NotFoundException when the upload does not exist for the school', async () => {
+      repo.findOne.mockResolvedValue(null)
+
+      await expect(service.deleteUpload('upload-1', 'school-1')).rejects.toThrow(
+        NotFoundException,
+      )
+      expect(repo.remove).not.toHaveBeenCalled()
+    })
+
+    it('throws BadRequestException when the upload is completed', async () => {
+      repo.findOne.mockResolvedValue(
+        makeUpload({ status: HandbookUploadStatus.Completed }),
+      )
+
+      await expect(service.deleteUpload('upload-1', 'school-1')).rejects.toThrow(
+        BadRequestException,
+      )
+      expect(repo.remove).not.toHaveBeenCalled()
     })
   })
 })
