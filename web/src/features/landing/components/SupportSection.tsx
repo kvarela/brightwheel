@@ -1,4 +1,5 @@
-import { Box, chakra, Flex, Grid, GridItem, Text, VStack } from '@chakra-ui/react'
+import { Box, Flex, Grid, GridItem, Text, VStack } from '@chakra-ui/react'
+import { useAuthStore } from '../../../store/authStore'
 
 const SUPPORT_FEATURES = [
   {
@@ -24,6 +25,8 @@ const SUPPORT_FEATURES = [
 ]
 
 export function SupportSection() {
+  const openRegister = useAuthStore((state) => state.openRegister)
+
   return (
     <Box as="section" bg="white" py={{ base: '64px', md: '96px' }}>
       <Box maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }}>
@@ -150,8 +153,10 @@ export function SupportSection() {
                   ))}
                 </VStack>
 
-                <chakra.a
-                  href="#"
+                <Box
+                  as="button"
+                  type="button"
+                  onClick={openRegister}
                   display="inline-flex"
                   alignItems="center"
                   gap={2}
@@ -165,10 +170,10 @@ export function SupportSection() {
                   cursor="pointer"
                   transition="all 0.3s ease-in-out"
                   _hover={{ bg: '#4352c5' }}
-                  textDecoration="none"
+                  border="none"
                 >
                   Get started free →
-                </chakra.a>
+                </Box>
               </VStack>
             </Box>
           </GridItem>

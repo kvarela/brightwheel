@@ -2,23 +2,54 @@ import { Box, chakra, Flex, Grid, GridItem, HStack, Text, VStack } from '@chakra
 import { Link as RouterLink } from 'react-router-dom'
 import { BrightwheelLogo } from './BrightwheelLogo'
 
-const FOOTER_COLUMNS = [
-  {
-    heading: 'Product',
-    links: ['AI Chat', 'Knowledge Base', 'Escalation Inbox', 'Reporting', 'Pricing'],
-  },
+interface FooterLink {
+  label: string
+  href: string
+}
+
+const FOOTER_COLUMNS: { heading: string; links: FooterLink[] }[] = [
   {
     heading: 'For Schools',
-    links: ['Preschools', 'Daycare Centers', 'Montessori Schools', 'Government Programs', 'Enterprise'],
+    links: [
+      { label: 'Preschools', href: 'https://mybrightwheel.com/preschool' },
+      { label: 'Daycare Centers', href: 'https://mybrightwheel.com/childcare' },
+      { label: 'Montessori Schools', href: 'https://mybrightwheel.com/montessori' },
+      { label: 'Government Programs', href: 'https://mybrightwheel.com/head-start' },
+      { label: 'Enterprise', href: 'https://mybrightwheel.com/enterprise' },
+    ],
   },
   {
     heading: 'Resources',
-    links: ['Help Center', 'Getting Started', 'FAQ', 'Webinars', 'Blog'],
+    links: [
+      { label: 'Help Center', href: 'https://help.mybrightwheel.com' },
+      { label: 'Getting Started', href: 'https://help.mybrightwheel.com' },
+      { label: 'Webinars', href: 'https://mybrightwheel.com/webinars' },
+      { label: 'Blog', href: 'https://mybrightwheel.com/blog' },
+    ],
   },
   {
     heading: 'Company',
-    links: ['About', 'Careers', 'Press', 'Security', 'Privacy', 'Terms'],
+    links: [
+      { label: 'About', href: 'https://mybrightwheel.com/about' },
+      { label: 'Careers', href: 'https://mybrightwheel.com/careers' },
+      { label: 'Press', href: 'https://mybrightwheel.com/press' },
+      { label: 'Security', href: 'https://mybrightwheel.com/security' },
+    ],
   },
+]
+
+const LEGAL_LINKS: FooterLink[] = [
+  { label: 'Privacy Policy', href: 'https://mybrightwheel.com/privacy-policy' },
+  { label: 'Terms of Service', href: 'https://mybrightwheel.com/terms-of-service' },
+  { label: 'Cookie Policy', href: 'https://mybrightwheel.com/cookie-policy' },
+]
+
+const SOCIAL_LINKS = [
+  { Icon: TwitterIcon, href: 'https://twitter.com/mybrightwheel', label: 'Twitter' },
+  { Icon: LinkedInIcon, href: 'https://www.linkedin.com/company/brightwheel', label: 'LinkedIn' },
+  { Icon: FacebookIcon, href: 'https://www.facebook.com/mybrightwheel', label: 'Facebook' },
+  { Icon: InstagramIcon, href: 'https://www.instagram.com/mybrightwheel', label: 'Instagram' },
+  { Icon: YouTubeIcon, href: 'https://www.youtube.com/@brightwheel', label: 'YouTube' },
 ]
 
 function TwitterIcon() {
@@ -66,7 +97,7 @@ export function Footer() {
     <Box as="footer" bg="#1E2549" color="white">
       <Box maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }} py={{ base: '48px', md: '64px' }}>
         <Grid
-          templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' }}
+          templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }}
           gap={{ base: 8, lg: 12 }}
         >
           <GridItem colSpan={{ base: 1, sm: 2, lg: 1 }}>
@@ -78,10 +109,13 @@ export function Footer() {
                 The AI-powered front desk built for childcare centers.
               </Text>
               <HStack gap={3} mt={2}>
-                {[TwitterIcon, LinkedInIcon, FacebookIcon, InstagramIcon, YouTubeIcon].map((Icon, i) => (
+                {SOCIAL_LINKS.map(({ Icon, href, label }) => (
                   <chakra.a
-                    key={i}
-                    href="#"
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
                     color="rgba(255,255,255,0.5)"
                     cursor="pointer"
                     transition="color 0.2s"
@@ -108,8 +142,10 @@ export function Footer() {
                 </Text>
                 {col.links.map((link) => (
                   <chakra.a
-                    key={link}
-                    href="#"
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     fontSize="14px"
                     color="rgba(255,255,255,0.65)"
                     cursor="pointer"
@@ -117,7 +153,7 @@ export function Footer() {
                     _hover={{ color: 'white' }}
                     textDecoration="none"
                   >
-                    {link}
+                    {link.label}
                   </chakra.a>
                 ))}
               </VStack>
@@ -136,17 +172,19 @@ export function Footer() {
               © 2026 brightwheel — All rights reserved
             </Text>
             <HStack gap={6}>
-              {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((item) => (
+              {LEGAL_LINKS.map((item) => (
                 <chakra.a
-                  key={item}
-                  href="#"
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   fontSize="13px"
                   color="rgba(255,255,255,0.4)"
                   cursor="pointer"
                   _hover={{ color: 'rgba(255,255,255,0.8)' }}
                   textDecoration="none"
                 >
-                  {item}
+                  {item.label}
                 </chakra.a>
               ))}
             </HStack>

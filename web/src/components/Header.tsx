@@ -1,11 +1,16 @@
-import { Flex, HStack, Text } from '@chakra-ui/react'
+import { chakra, Flex, HStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { BrightwheelLogo } from './BrightwheelLogo'
 import { BwButton } from './BwButton'
 import { NotificationBadge } from './NotificationBadge'
 import { useAuthStore } from '../store/authStore'
 
-const NAV_ITEMS = ['For Schools', 'For Parents', 'Features', 'Pricing']
+const NAV_ITEMS = [
+  { label: 'For Schools', href: 'https://mybrightwheel.com/childcare-preschool-director' },
+  { label: 'For Parents', href: 'https://mybrightwheel.com/parents' },
+  { label: 'Features', href: 'https://mybrightwheel.com/features' },
+  { label: 'Pricing', href: 'https://mybrightwheel.com/pricing' },
+]
 
 export function Header() {
   const { isAuthenticated, openLogin, openRegister, clearToken } = useAuthStore()
@@ -34,17 +39,21 @@ export function Header() {
 
         <HStack gap={8} display={{ base: 'none', lg: 'flex' }}>
           {NAV_ITEMS.map((item) => (
-            <Text
-              key={item}
+            <chakra.a
+              key={item.label}
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
               color="rgba(255,255,255,0.8)"
               fontSize="14px"
               fontWeight={500}
               cursor="pointer"
               transition="color 0.2s ease"
+              textDecoration="none"
               _hover={{ color: '#29B9BB' }}
             >
-              {item}
-            </Text>
+              {item.label}
+            </chakra.a>
           ))}
         </HStack>
 
