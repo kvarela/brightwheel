@@ -36,6 +36,13 @@ export function LoginModal() {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isSubmitting) {
+      e.preventDefault()
+      void handleSubmit(onSubmit)()
+    }
+  }
+
   return (
     <Dialog.Root
       open={isLoginOpen}
@@ -75,7 +82,7 @@ export function LoginModal() {
             </Dialog.Header>
 
             <Dialog.Body pt="0">
-              <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+              <Box as="form" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
                 {/* Email */}
                 <Box mb="4">
                   <Text fontSize="14px" fontWeight="500" color="#5C5E6A" mb="1">
