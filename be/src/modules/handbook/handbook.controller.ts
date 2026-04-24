@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Request } from '@nestjs/common'
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Request, UseGuards } from '@nestjs/common'
 import {
   HandbookProcessResponseDto,
   HandbookSignedUploadResponseDto,
@@ -10,6 +10,7 @@ import { HandbookUploadService } from './services/handbook-upload.service'
 import { HandbookRequestContextService } from './services/handbook-request-context.service'
 import { HandbookService } from './handbook.service'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 
 const SCHOOL_HEADER = 'x-school-id'
 const STAFF_HEADER = 'x-staff-user-id'
@@ -45,6 +46,7 @@ export class HandbookController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
   getUploads(@Request() req: { user: StaffUser }) {
     return this.handbookService.findBySchool(req.user.schoolId)
   }

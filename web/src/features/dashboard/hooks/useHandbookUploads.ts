@@ -3,7 +3,7 @@ import { apiClient } from '../../../lib/apiClient'
 import { HandbookUpload } from '../types/HandbookUpload'
 
 async function fetchHandbookUploads(): Promise<HandbookUpload[]> {
-  const { data } = await apiClient.get<HandbookUpload[]>('/api/handbook-uploads')
+  const { data } = await apiClient.get<HandbookUpload[]>('/api/handbook')
   return data
 }
 
