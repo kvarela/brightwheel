@@ -3,11 +3,13 @@ import { HandbookFileType, HandbookUploadStatus } from '@brightwheel/shared'
 import { HandbookController } from './handbook.controller'
 import { HandbookUploadService } from './services/handbook-upload.service'
 import { HandbookRequestContextService } from './services/handbook-request-context.service'
+import { HandbookService } from './handbook.service'
 
 describe('HandbookController', () => {
   let controller: HandbookController
   let uploadService: jest.Mocked<HandbookUploadService>
   let contextService: jest.Mocked<HandbookRequestContextService>
+  let handbookService: jest.Mocked<HandbookService>
 
   beforeEach(async () => {
     uploadService = {
@@ -20,11 +22,16 @@ describe('HandbookController', () => {
       resolve: jest.fn(),
     } as unknown as jest.Mocked<HandbookRequestContextService>
 
+    handbookService = {
+      findBySchool: jest.fn(),
+    } as unknown as jest.Mocked<HandbookService>
+
     const moduleRef = await Test.createTestingModule({
       controllers: [HandbookController],
       providers: [
         { provide: HandbookUploadService, useValue: uploadService },
         { provide: HandbookRequestContextService, useValue: contextService },
+        { provide: HandbookService, useValue: handbookService },
       ],
     }).compile()
 
@@ -82,5 +89,16 @@ describe('HandbookController', () => {
     const result = await controller.getUploadStatus('u1')
     expect(uploadService.getUploadStatus).toHaveBeenCalledWith('u1')
     expect(result.status).toBe(HandbookUploadStatus.Processing)
+  })
+
+  it('lists uploads for the authenticated staff user\'s school', async () => {
+    const uploads = [{ id: 'u1' }, { id: 'u2' }] as never
+    handbookService.findBySchool.mockResolvedValue(uploads)
+
+    const req = { user: { schoolId: 'school-42' } } as never
+    const result = await controller.getUploads(req)
+
+    expect(handbookService.findBySchool).toHaveBeenCalledWith('school-42')
+    expect(result).toBe(uploads)
   })
 })
