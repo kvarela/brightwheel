@@ -1,1 +1,2 @@
-// Entity factories — added alongside each feature module
+export * from './school.factory'
+export * from './staff-user.factory'

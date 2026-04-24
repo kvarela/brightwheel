@@ -1,0 +1,48 @@
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post } from '@nestjs/common'
+import {
+  HandbookProcessResponseDto,
+  HandbookSignedUploadResponseDto,
+  HandbookUploadStatusResponseDto,
+} from '@brightwheel/shared'
+import { CreateSignedUploadDto } from './dto/create-signed-upload.dto'
+import { ProcessHandbookDto } from './dto/process-handbook.dto'
+import { HandbookUploadService } from './services/handbook-upload.service'
+import { HandbookRequestContextService } from './services/handbook-request-context.service'
+
+const SCHOOL_HEADER = 'x-school-id'
+const STAFF_HEADER = 'x-staff-user-id'
+
+@Controller('handbook')
+export class HandbookController {
+  constructor(
+    private readonly uploadService: HandbookUploadService,
+    private readonly contextService: HandbookRequestContextService,
+  ) {}
+
+  @Post('uploads/signed-url')
+  async createSignedUpload(
+    @Body() body: CreateSignedUploadDto,
+    @Headers(SCHOOL_HEADER) schoolHeader?: string,
+    @Headers(STAFF_HEADER) staffHeader?: string,
+  ): Promise<HandbookSignedUploadResponseDto> {
+    const { schoolId, staffUserId } = await this.contextService.resolve(
+      schoolHeader,
+      staffHeader,
+    )
+    return this.uploadService.createSignedUpload(schoolId, staffUserId, body)
+  }
+
+  @Post('uploads/process')
+  async processUpload(
+    @Body() body: ProcessHandbookDto,
+  ): Promise<HandbookProcessResponseDto> {
+    return this.uploadService.processUpload(body.uploadId)
+  }
+
+  @Get('uploads/:uploadId')
+  async getUploadStatus(
+    @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
+  ): Promise<HandbookUploadStatusResponseDto> {
+    return this.uploadService.getUploadStatus(uploadId)
+  }
+}

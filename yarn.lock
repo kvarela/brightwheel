@@ -272,6 +272,26 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
+"@aws-sdk/core@^3.974.5":
+  version "3.974.5"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/core/-/core-3.974.5.tgz#6b9533215a9fb929bd5257f760a802e10493d2bf"
+  integrity sha512-lMPlYlYfQdNZhlkJgnkmESwrY+hNh3PljmZ+37oAqLNdJ6rnILAwFSyc6B3bJeDOtMORNnMQIej0aTRuOlDyhQ==
+  dependencies:
+    "@aws-sdk/types" "^3.973.8"
+    "@aws-sdk/xml-builder" "^3.972.19"
+    "@smithy/core" "^3.23.17"
+    "@smithy/node-config-provider" "^4.3.14"
+    "@smithy/property-provider" "^4.2.14"
+    "@smithy/protocol-http" "^5.3.14"
+    "@smithy/signature-v4" "^5.3.14"
+    "@smithy/smithy-client" "^4.12.13"
+    "@smithy/types" "^4.14.1"
+    "@smithy/util-base64" "^4.3.2"
+    "@smithy/util-middleware" "^4.2.14"
+    "@smithy/util-retry" "^4.3.4"
+    "@smithy/util-utf8" "^4.2.2"
+    tslib "^2.6.2"
+
 "@aws-sdk/crc64-nvme@^3.972.7":
   version "3.972.7"
   resolved "https://registry.yarnpkg.com/@aws-sdk/crc64-nvme/-/crc64-nvme-3.972.7.tgz#0e56fb3ccc0242ed05ffd0bc993d724ce8b3dde2"
@@ -500,6 +520,26 @@
     "@smithy/util-utf8" "^4.2.2"
     tslib "^2.6.2"
 
+"@aws-sdk/middleware-sdk-s3@^3.972.34":
+  version "3.972.34"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/middleware-sdk-s3/-/middleware-sdk-s3-3.972.34.tgz#1a28edbbc9857a38f37a362a8de100d732709f20"
+  integrity sha512-/UL96JKjsjdodcRRMKl99tLQvK6Oi9ptLC9iU1yiTF/ruaDX0mtBBtnLNZDxIZRJOCVOtB49ed1YaTadqygk8Q==
+  dependencies:
+    "@aws-sdk/core" "^3.974.5"
+    "@aws-sdk/types" "^3.973.8"
+    "@aws-sdk/util-arn-parser" "^3.972.3"
+    "@smithy/core" "^3.23.17"
+    "@smithy/node-config-provider" "^4.3.14"
+    "@smithy/protocol-http" "^5.3.14"
+    "@smithy/signature-v4" "^5.3.14"
+    "@smithy/smithy-client" "^4.12.13"
+    "@smithy/types" "^4.14.1"
+    "@smithy/util-config-provider" "^4.2.2"
+    "@smithy/util-middleware" "^4.2.14"
+    "@smithy/util-stream" "^4.5.25"
+    "@smithy/util-utf8" "^4.2.2"
+    tslib "^2.6.2"
+
 "@aws-sdk/middleware-ssec@^3.972.10":
   version "3.972.10"
   resolved "https://registry.yarnpkg.com/@aws-sdk/middleware-ssec/-/middleware-ssec-3.972.10.tgz#46b5c030c0116f51110e18042ad3cf863ab5c81c"
@@ -579,12 +619,38 @@
     "@smithy/types" "^4.14.1"
     tslib "^2.6.2"
 
+"@aws-sdk/s3-request-presigner@^3.600.0":
+  version "3.1036.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/s3-request-presigner/-/s3-request-presigner-3.1036.0.tgz#fc64511b713bba1fe745720631e8fd23a836718f"
+  integrity sha512-5LEXxcZrrCrPvd7/zIyadEIBsMeXyT6sg9tn3OkkwZ9Rl6Wfq7gxOI82Ei30cj0QXvzJwjcizpskmPh8M5QNtQ==
+  dependencies:
+    "@aws-sdk/signature-v4-multi-region" "^3.996.22"
+    "@aws-sdk/types" "^3.973.8"
+    "@aws-sdk/util-format-url" "^3.972.10"
+    "@smithy/middleware-endpoint" "^4.4.32"
+    "@smithy/protocol-http" "^5.3.14"
+    "@smithy/smithy-client" "^4.12.13"
+    "@smithy/types" "^4.14.1"
+    tslib "^2.6.2"
+
 "@aws-sdk/signature-v4-multi-region@^3.996.21":
   version "3.996.21"
   resolved "https://registry.yarnpkg.com/@aws-sdk/signature-v4-multi-region/-/signature-v4-multi-region-3.996.21.tgz#eec249ca9f117ae859d333d2c2058175ca96e1c9"
   integrity sha512-3EpT+C0QdmTMB5aVeJ5odWSLt9vg2oGzUXl1xvUazKGlkr9OBYnegNWqhhjGgZdv8RmSi5eS8nqqB+euNP2aqA==
   dependencies:
     "@aws-sdk/middleware-sdk-s3" "^3.972.33"
+    "@aws-sdk/types" "^3.973.8"
+    "@smithy/protocol-http" "^5.3.14"
+    "@smithy/signature-v4" "^5.3.14"
+    "@smithy/types" "^4.14.1"
+    tslib "^2.6.2"
+
+"@aws-sdk/signature-v4-multi-region@^3.996.22":
+  version "3.996.22"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/signature-v4-multi-region/-/signature-v4-multi-region-3.996.22.tgz#ed91b4cb0a281fa7dc776b2d0a22968ffb67e28f"
+  integrity sha512-/rXhMXteD+BqhFd0nYprAgcZ/KtU+963uftPqd3tiFcFfooHZINXUGtOmo2SQjRVauCTNqIEzkwuSETdZFqTTA==
+  dependencies:
+    "@aws-sdk/middleware-sdk-s3" "^3.972.34"
     "@aws-sdk/types" "^3.973.8"
     "@smithy/protocol-http" "^5.3.14"
     "@smithy/signature-v4" "^5.3.14"
@@ -630,6 +696,16 @@
     "@smithy/util-endpoints" "^3.4.2"
     tslib "^2.6.2"
 
+"@aws-sdk/util-format-url@^3.972.10":
+  version "3.972.10"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/util-format-url/-/util-format-url-3.972.10.tgz#63184b56627b50842cf37cc0e63251944fc234ed"
+  integrity sha512-DEKiHNJVtNxdyTeQspzY+15Po/kHm6sF0Cs4HV9Q2+lplB63+DrvdeiSoOSdWEWAoO2RcY1veoXVDz2tWxWCgQ==
+  dependencies:
+    "@aws-sdk/types" "^3.973.8"
+    "@smithy/querystring-builder" "^4.2.14"
+    "@smithy/types" "^4.14.1"
+    tslib "^2.6.2"
+
 "@aws-sdk/util-locate-window@^3.0.0":
   version "3.965.5"
   resolved "https://registry.yarnpkg.com/@aws-sdk/util-locate-window/-/util-locate-window-3.965.5.tgz#e30e6ff2aff6436209ed42c765dec2d2a48df7c0"
@@ -666,6 +742,15 @@
   dependencies:
     "@smithy/types" "^4.14.1"
     fast-xml-parser "5.5.8"
+    tslib "^2.6.2"
+
+"@aws-sdk/xml-builder@^3.972.19":
+  version "3.972.19"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/xml-builder/-/xml-builder-3.972.19.tgz#49dbd580e51b04ae207b17d5ed8f6e53a79fe6d3"
+  integrity sha512-Cw8IOMdBUEIl8ZlhRC3Dc/E64D5B5/8JhV6vhPLiPfJwcRC84S6F8aBOIi/N4vR9ZyA4I5Cc0Ateb/9EHaJXeQ==
+  dependencies:
+    "@smithy/types" "^4.14.1"
+    fast-xml-parser "5.7.1"
     tslib "^2.6.2"
 
 "@aws/lambda-invoke-store@^0.2.2":
@@ -1787,6 +1872,11 @@
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
   integrity sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==
+
+"@nodable/entities@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@nodable/entities/-/entities-2.1.0.tgz#f543e5c6446720d4cf9e498a83019dd159973bc2"
+  integrity sha512-nyT7T3nbMyBI/lvr6L5TyWbFJAI9FTgVRakNoBqCD+PmID8DzFrrNdLLtHMwMszOtqZa8PAOV24ZqDnQrhQINA==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -5468,7 +5558,7 @@ fast-uri@^3.0.1:
   resolved "https://registry.yarnpkg.com/fast-uri/-/fast-uri-3.1.0.tgz#66eecff6c764c0df9b762e62ca7edcfb53b4edfa"
   integrity sha512-iPeeDKJSWf4IEOasVVrknXpaBV0IApz/gp7S2bb7Z4Lljbl2MGJRqInZiUrQwV16cpzw/D3S5j5Julj/gT52AA==
 
-fast-xml-builder@^1.1.4:
+fast-xml-builder@^1.1.4, fast-xml-builder@^1.1.5:
   version "1.1.5"
   resolved "https://registry.yarnpkg.com/fast-xml-builder/-/fast-xml-builder-1.1.5.tgz#50188e1452a5fa095f415d3e63dcac0a1dbcbf11"
   integrity sha512-4TJn/8FKLeslLAH3dnohXqE3QSoxkhvaMzepOIZytwJXZO69Bfz0HBdDHzOTOon6G59Zrk6VQ2bEiv1t61rfkA==
@@ -5483,6 +5573,16 @@ fast-xml-parser@5.5.8:
     fast-xml-builder "^1.1.4"
     path-expression-matcher "^1.2.0"
     strnum "^2.2.0"
+
+fast-xml-parser@5.7.1:
+  version "5.7.1"
+  resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-5.7.1.tgz#17697550bdd2a0a0d47cdc4b456c009c4cbe8a06"
+  integrity sha512-8Cc3f8GUGUULg34pBch/KGyPLglS+OFs05deyOlY7fL2MTagYPKrVQNmR1fLF/yJ9PH5ZSTd3YDF6pnmeZU+zA==
+  dependencies:
+    "@nodable/entities" "^2.1.0"
+    fast-xml-builder "^1.1.5"
+    path-expression-matcher "^1.5.0"
+    strnum "^2.2.3"
 
 fastq@^1.6.0:
   version "1.20.1"
@@ -7314,7 +7414,7 @@ path-exists@^4.0.0:
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
   integrity sha512-ak9Qy5Q7jYb2Wwcey5Fpvg2KoAc/ZIhLSLOSBmRmygPsGwkVVt0fZa0qrtMz+m6tJTAHfZQ8FnmB4MG4LWy7/w==
 
-path-expression-matcher@^1.1.3, path-expression-matcher@^1.2.0:
+path-expression-matcher@^1.1.3, path-expression-matcher@^1.2.0, path-expression-matcher@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/path-expression-matcher/-/path-expression-matcher-1.5.0.tgz#3b98545dc88ffebb593e2d8458d0929da9275f4a"
   integrity sha512-cbrerZV+6rvdQrrD+iGMcZFEiiSrbv9Tfdkvnusy6y0x0GKBXREFg/Y65GhIfm0tnLntThhzCnfKwp1WRjeCyQ==
@@ -8213,7 +8313,7 @@ strip-json-comments@^3.1.1:
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-strnum@^2.2.0:
+strnum@^2.2.0, strnum@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/strnum/-/strnum-2.2.3.tgz#0119fce02749a11bb126a4d686ac5dbdf6e57586"
   integrity sha512-oKx6RUCuHfT3oyVjtnrmn19H1SiCqgJSg+54XqURKp5aCMbrXrhLjRN9TjuwMjiYstZ0MzDrHqkGZ5dFTKd+zg==
