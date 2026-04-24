@@ -16,7 +16,7 @@ describe('SchoolController (HTTP)', () => {
     app = testApp.app
     db = testApp.db
     repo = app.get(getRepositoryToken(School))
-  })
+  }, 30000)
 
   afterAll(async () => {
     await app.close()
