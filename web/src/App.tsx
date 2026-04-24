@@ -5,6 +5,7 @@ import { HandbookUploadPage } from './features/handbook/HandbookUploadPage'
 import { HandbookUploadDetailPage } from './features/handbook/pages/HandbookUploadDetailPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
 import { LiveChatsPage } from './features/dashboard/pages/LiveChatsPage'
+import { StaffChatPage } from './features/dashboard/pages/StaffChatPage'
 import { KnowledgeBasePage } from './features/dashboard/pages/KnowledgeBasePage'
 import { ParentChatPage } from './features/parent-chat/pages/ParentChatPage'
 
@@ -20,6 +21,7 @@ export function App() {
         />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/chats" element={<LiveChatsPage />} />
+        <Route path="/dashboard/chats/:sessionId" element={<StaffChatPage />} />
         <Route path="/dashboard/knowledge-base" element={<KnowledgeBasePage />} />
         <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
       </Route>
