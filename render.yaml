@@ -2,7 +2,7 @@ services:
   - type: web
     name: api
     runtime: node
-    buildCommand: yarn workspace @brightwheel/be build
+    buildCommand: yarn install --production=false --frozen-lockfile && yarn workspace @brightwheel/be build
     startCommand: node be/dist/main.js
     envVars:
       - key: NODE_ENV
@@ -31,7 +31,7 @@ services:
   - type: web
     name: web
     runtime: static
-    buildCommand: yarn workspace @brightwheel/web build
+    buildCommand: yarn install --production=false --frozen-lockfile && yarn workspace @brightwheel/web build
     staticPublishPath: web/dist
     routes:
       - type: rewrite
