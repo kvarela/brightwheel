@@ -19,13 +19,13 @@ services:
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
-      - key: RENDER_STORAGE_ENDPOINT
+      - key: AWS_REGION
         sync: false
-      - key: RENDER_STORAGE_ACCESS_KEY
+      - key: AWS_ACCESS_KEY_ID
         sync: false
-      - key: RENDER_STORAGE_SECRET_KEY
+      - key: AWS_SECRET_ACCESS_KEY
         sync: false
-      - key: RENDER_STORAGE_BUCKET
+      - key: S3_BUCKET
         value: brightwheel-handbooks
 
   - type: web
