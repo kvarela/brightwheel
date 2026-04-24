@@ -1,9 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ILike, Repository } from 'typeorm'
+import { ILike, IsNull, Repository } from 'typeorm'
 import { KnowledgeBaseSource } from '@brightwheel/shared'
-import { ILike, IsNull } from 'typeorm'
-import { Repository } from 'typeorm'
 import { AiService } from '../ai/ai.service'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
 import { CreateKnowledgeBaseEntryDto } from './dto/create-knowledge-base-entry.dto'
@@ -139,7 +137,7 @@ export class KnowledgeBaseService implements OnModuleInit {
   }
 
   create(schoolId: string, dto: CreateKnowledgeBaseEntryDto): Promise<KnowledgeBaseEntry> {
-    const entry = this.kbEntryRepo.create({
+    const entry = this.kbRepository.create({
       schoolId,
       question: dto.question.trim(),
       answer: dto.answer.trim(),
@@ -150,7 +148,7 @@ export class KnowledgeBaseService implements OnModuleInit {
       handbookVersionId: null,
       isActive: true,
     })
-    return this.kbEntryRepo.save(entry)
+    return this.kbRepository.save(entry)
   }
 }
 

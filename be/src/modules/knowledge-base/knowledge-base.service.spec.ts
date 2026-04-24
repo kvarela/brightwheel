@@ -122,35 +122,30 @@ describe('KnowledgeBaseService', () => {
   })
 
   describe('create', () => {
-    it('creates a manual entry for the school, trimming question and answer', async () => {
-      const saved = makeEntry({
-        id: 'new-entry',
-        question: 'New question?',
-        answer: 'New answer.',
-        isBaseInquiry: false,
-        baseInquiryKey: null,
+    it('persists a manual entry for the school and trims whitespace', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
       })
-      repo.create.mockImplementation((v: Partial<KnowledgeBaseEntry>) => v as KnowledgeBaseEntry)
-      repo.save.mockResolvedValue(saved)
 
-      const result = await service.create('school-1', {
+      const result = await service.create(school.id, {
         question: '  New question?  ',
         answer: '  New answer.  ',
       })
 
-      expect(repo.create).toHaveBeenCalledWith({
-        schoolId: 'school-1',
-        question: 'New question?',
-        answer: 'New answer.',
-        source: KnowledgeBaseSource.Manual,
-        isBaseInquiry: false,
-        baseInquiryKey: null,
-        embedding: null,
-        handbookVersionId: null,
-        isActive: true,
-      })
-      expect(repo.save).toHaveBeenCalled()
-      expect(result).toEqual(saved)
+      expect(result.id).toBeDefined()
+      expect(result.schoolId).toBe(school.id)
+      expect(result.question).toBe('New question?')
+      expect(result.answer).toBe('New answer.')
+      expect(result.source).toBe(KnowledgeBaseSource.Manual)
+      expect(result.isBaseInquiry).toBe(false)
+      expect(result.baseInquiryKey).toBeNull()
+      expect(result.isActive).toBe(true)
+
+      const stored = await kbRepo.findOneByOrFail({ id: result.id })
+      expect(stored.question).toBe('New question?')
+      expect(stored.answer).toBe('New answer.')
     })
   })
 })
