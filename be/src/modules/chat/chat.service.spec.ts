@@ -189,6 +189,56 @@ describe('ChatService', () => {
     })
   })
 
+  describe('findLiveBySchool', () => {
+    it('includes the latest parent inquiry for each active/escalated session', async () => {
+      const school = await buildSchool(0.8)
+      aiGenerateResponse.mockResolvedValue({
+        answer: 'unclear',
+        modelConfidence: 0.1,
+      })
+
+      const session = await service.createSession(school.id, 'Parent A')
+      await service.handleParentMessage(session.sessionToken, 'first question')
+      await service.handleParentMessage(session.sessionToken, 'do you do overnight care?')
+
+      const results = await service.findLiveBySchool(school.id)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].id).toBe(session.id)
+      expect(results[0].status).toBe(ChatSessionStatus.Escalated)
+      expect(results[0].latestInquiry).not.toBeNull()
+      expect(results[0].latestInquiry?.content).toBe('do you do overnight care?')
+      expect(typeof results[0].latestInquiry?.createdAt).toBe('string')
+    })
+
+    it('returns null latestInquiry for sessions without parent messages', async () => {
+      const school = await buildSchool()
+      const session = await service.createSession(school.id)
+
+      const results = await service.findLiveBySchool(school.id)
+
+      expect(results).toHaveLength(1)
+      expect(results[0].id).toBe(session.id)
+      expect(results[0].latestInquiry).toBeNull()
+    })
+
+    it('scopes results to the requested school', async () => {
+      const schoolA = await buildSchool()
+      const schoolB = await schoolRepo.save({
+        name: 'Other',
+        slug: 'other',
+        isActive: true,
+        escalationThreshold: 0.8,
+      })
+      await service.createSession(schoolA.id)
+      await service.createSession(schoolB.id)
+
+      const results = await service.findLiveBySchool(schoolA.id)
+
+      expect(results).toHaveLength(1)
+    })
+  })
+
   describe('listConversationsForSchool', () => {
     it('returns only escalated/resolved conversations when no filter is provided', async () => {
       const school = await buildSchool(0.8)

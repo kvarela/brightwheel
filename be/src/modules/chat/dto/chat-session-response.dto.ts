@@ -6,7 +6,8 @@ export class ChatSessionResponseDto {
   parentEmail: string | null
   status: ChatSessionStatus
   inboxState: InboxState | null
-  escalatedAt: Date | null
-  createdAt: Date
+  escalatedAt: string | null
+  createdAt: string
   assignedStaff: { id: string; fullName: string; email: string } | null
+  latestInquiry: { content: string; createdAt: string } | null
 }

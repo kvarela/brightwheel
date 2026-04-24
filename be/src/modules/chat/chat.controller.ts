@@ -23,7 +23,7 @@ import { CreateSessionDto } from './dto/create-session.dto'
 import { SendMessageDto } from './dto/send-message.dto'
 import { UpdateStateDto } from './dto/update-state.dto'
 import { RequestUser } from '../auth/strategies/jwt.strategy'
-import { ChatSession } from './entities/chat-session.entity'
+import { ChatSessionResponseDto } from './dto/chat-session-response.dto'
 
 @Controller('chat')
 export class ChatController {
@@ -31,7 +31,7 @@ export class ChatController {
 
   @Get('sessions')
   @UseGuards(JwtAuthGuard)
-  async getLive(@Request() req: { user: RequestUser }): Promise<ChatSession[]> {
+  async getLive(@Request() req: { user: RequestUser }): Promise<ChatSessionResponseDto[]> {
     return this.chatService.findLiveBySchool(req.user.schoolId)
   }
 
