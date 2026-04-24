@@ -7,6 +7,11 @@ export interface AssignedStaff {
   email: string
 }
 
+export interface LatestInquiry {
+  content: string
+  createdAt: string
+}
+
 export interface ChatSession {
   id: string
   parentName: string | null
@@ -16,4 +21,5 @@ export interface ChatSession {
   escalatedAt: string | null
   createdAt: string
   assignedStaff: AssignedStaff | null
+  latestInquiry: LatestInquiry | null
 }

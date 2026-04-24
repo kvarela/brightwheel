@@ -133,37 +133,74 @@ export function LiveChatsSection({ fullPage }: { fullPage?: boolean }) {
               py="14px"
               borderTop={idx === 0 ? 'none' : '1px solid #EBEFF4'}
               display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              flexWrap="wrap"
+              flexDirection="column"
               gap="8px"
             >
-              <Box>
-                <Box display="flex" alignItems="center" gap="6px" flexWrap="wrap">
-                  <Text fontSize="14px" fontWeight={600} color="#18181D">
-                    {session.parentName ?? 'Anonymous'}
-                  </Text>
-                  {session.parentEmail && (
-                    <Text fontSize="12px" color="#737685">
-                      {session.parentEmail}
+              <Box
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                flexWrap="wrap"
+                gap="8px"
+              >
+                <Box>
+                  <Box display="flex" alignItems="center" gap="6px" flexWrap="wrap">
+                    <Text fontSize="14px" fontWeight={600} color="#18181D">
+                      {session.parentName ?? 'Anonymous'}
                     </Text>
-                  )}
+                    {session.parentEmail && (
+                      <Text fontSize="12px" color="#737685">
+                        {session.parentEmail}
+                      </Text>
+                    )}
+                  </Box>
+                  <Box display="flex" alignItems="center" mt="4px" flexWrap="wrap">
+                    {statusBadge(session)}
+                    {inboxStateBadge(session.inboxState)}
+                    {session.assignedStaff && (
+                      <Text fontSize="12px" color="#5C5E6A" ml="8px">
+                        Assigned to {session.assignedStaff.fullName}
+                      </Text>
+                    )}
+                  </Box>
                 </Box>
-                <Box display="flex" alignItems="center" mt="4px" flexWrap="wrap">
-                  {statusBadge(session)}
-                  {inboxStateBadge(session.inboxState)}
-                  {session.assignedStaff && (
-                    <Text fontSize="12px" color="#5C5E6A" ml="8px">
-                      Assigned to {session.assignedStaff.fullName}
-                    </Text>
-                  )}
-                </Box>
+                <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
+                  {session.escalatedAt
+                    ? `Escalated ${timeAgo(session.escalatedAt)}`
+                    : `Started ${timeAgo(session.createdAt)}`}
+                </Text>
               </Box>
-              <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
-                {session.escalatedAt
-                  ? `Escalated ${timeAgo(session.escalatedAt)}`
-                  : `Started ${timeAgo(session.createdAt)}`}
-              </Text>
+              {session.status === 'escalated' && session.latestInquiry && (
+                <Box
+                  bg="#F7F9FB"
+                  borderLeft="2px solid #5463D6"
+                  borderRadius="2px"
+                  px="10px"
+                  py="8px"
+                >
+                  <Text
+                    fontSize="11px"
+                    fontWeight={600}
+                    color="#737685"
+                    textTransform="uppercase"
+                    letterSpacing="0.04em"
+                    mb="2px"
+                  >
+                    Inquiry
+                  </Text>
+                  <Text
+                    fontSize="14px"
+                    color="#18181D"
+                    lineHeight="1.4"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                    display="-webkit-box"
+                    css={{ WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+                  >
+                    {session.latestInquiry.content}
+                  </Text>
+                </Box>
+              )}
             </Box>
           ))}
         </Stack>

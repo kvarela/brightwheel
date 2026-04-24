@@ -1,7 +1,8 @@
-import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Post, Query, Request, UseGuards } from '@nestjs/common'
 import { JwtAuthGuard } from '../auth/auth.guard'
 import { RequestUser } from '../auth/strategies/jwt.strategy'
 import { KnowledgeBaseService } from './knowledge-base.service'
+import { CreateKnowledgeBaseEntryDto } from './dto/create-knowledge-base-entry.dto'
 
 @Controller('knowledge-base')
 @UseGuards(JwtAuthGuard)
@@ -14,5 +15,13 @@ export class KnowledgeBaseController {
     @Query('search') search?: string,
   ) {
     return this.kbService.findBySchool(req.user.schoolId, search)
+  }
+
+  @Post()
+  createEntry(
+    @Request() req: { user: RequestUser },
+    @Body() dto: CreateKnowledgeBaseEntryDto,
+  ) {
+    return this.kbService.create(req.user.schoolId, dto)
   }
 }

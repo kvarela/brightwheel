@@ -19,6 +19,7 @@ import { NotificationGateway } from '../notification/notification.gateway'
 import { ParentGateway } from '../notification/parent.gateway'
 import { School } from '../school/entities/school.entity'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
+import { ChatSessionResponseDto } from './dto/chat-session-response.dto'
 import { ChatSession } from './entities/chat-session.entity'
 import { Message } from './entities/message.entity'
 import { MessageKnowledgeBaseEntry } from './entities/message-knowledge-base-entry.entity'
@@ -383,8 +384,8 @@ export class ChatService {
     }
   }
 
-  findLiveBySchool(schoolId: string): Promise<ChatSession[]> {
-    return this.sessionRepository.find({
+  async findLiveBySchool(schoolId: string): Promise<ChatSessionResponseDto[]> {
+    const sessions = await this.sessionRepository.find({
       where: [
         { schoolId, status: ChatSessionStatus.Active },
         { schoolId, status: ChatSessionStatus.Escalated },
@@ -392,5 +393,37 @@ export class ChatService {
       relations: ['assignedStaff'],
       order: { escalatedAt: 'DESC', createdAt: 'DESC' },
     })
+
+    return Promise.all(sessions.map((s) => this.toLiveSessionDto(s)))
+  }
+
+  private async toLiveSessionDto(session: ChatSession): Promise<ChatSessionResponseDto> {
+    const latestParentMessage = await this.messageRepository.findOne({
+      where: { chatSessionId: session.id, role: MessageRole.Parent },
+      order: { createdAt: 'DESC' },
+    })
+
+    return {
+      id: session.id,
+      parentName: session.parentName,
+      parentEmail: session.parentEmail,
+      status: session.status,
+      inboxState: session.inboxState,
+      escalatedAt: session.escalatedAt?.toISOString() ?? null,
+      createdAt: session.createdAt.toISOString(),
+      assignedStaff: session.assignedStaff
+        ? {
+            id: session.assignedStaff.id,
+            fullName: session.assignedStaff.fullName,
+            email: session.assignedStaff.email,
+          }
+        : null,
+      latestInquiry: latestParentMessage
+        ? {
+            content: latestParentMessage.content,
+            createdAt: latestParentMessage.createdAt.toISOString(),
+          }
+        : null,
+    }
   }
 }
