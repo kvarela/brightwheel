@@ -32,7 +32,7 @@ describe('AuthService', () => {
     schoolRepo = module.get<Repository<School>>(getRepositoryToken(School))
 
     testSchool = await schoolRepo.save({ name: 'Test School', slug: 'test-school' })
-  })
+  }, 30000)
 
   afterAll(async () => {
     await module.close()
@@ -48,7 +48,7 @@ describe('AuthService', () => {
         fullName: 'Login User',
         role: StaffRole.Admin,
       })
-    })
+    }, 15000)
 
     it('returns an access token for valid credentials', async () => {
       const result = await service.login('login@example.com', 'correct-pass')

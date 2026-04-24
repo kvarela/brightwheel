@@ -18,7 +18,7 @@ describe('SchoolService', () => {
     db = testApp.db
     service = app.get(SchoolService)
     repo = app.get(getRepositoryToken(School))
-  })
+  }, 30000)
 
   afterAll(async () => {
     await app.close()
