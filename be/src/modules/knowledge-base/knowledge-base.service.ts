@@ -1,7 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { ILike, IsNull } from 'typeorm'
-import { Repository } from 'typeorm'
 import { ILike, IsNull, Repository } from 'typeorm'
 import { KnowledgeBaseSource } from '@brightwheel/shared'
 import { AiService } from '../ai/ai.service'
