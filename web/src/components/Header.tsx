@@ -2,12 +2,13 @@ import { Flex, HStack, Text } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { BrightwheelLogo } from './BrightwheelLogo'
 import { BwButton } from './BwButton'
+import { NotificationBadge } from './NotificationBadge'
 import { useAuthStore } from '../store/authStore'
 
 const NAV_ITEMS = ['For Schools', 'For Parents', 'Features', 'Pricing']
 
 export function Header() {
-  const { openLogin, openRegister } = useAuthStore()
+  const { isAuthenticated, openLogin, openRegister, clearToken } = useAuthStore()
 
   return (
     <Flex
@@ -28,7 +29,7 @@ export function Header() {
         justify="space-between"
       >
         <RouterLink to="/" style={{ textDecoration: 'none' }}>
-          <BrightwheelLogo variant="light" />
+          <BrightwheelLogo />
         </RouterLink>
 
         <HStack gap={8} display={{ base: 'none', lg: 'flex' }}>
@@ -47,21 +48,48 @@ export function Header() {
           ))}
         </HStack>
 
-        <HStack gap={3}>
-          <BwButton variant="outline-light" px="20px" py="10px" fontSize="14px" onClick={openLogin}>
-            Login
-          </BwButton>
-          <BwButton
-            variant="primary"
-            px="20px"
-            py="10px"
-            fontSize="14px"
-            display={{ base: 'none', md: 'inline-flex' }}
-            onClick={openRegister}
-          >
-            Get started
-          </BwButton>
-        </HStack>
+        {isAuthenticated ? (
+          <HStack gap={3}>
+            <NotificationBadge />
+            <RouterLink to="/dashboard" style={{ textDecoration: 'none' }}>
+              <BwButton variant="outline-light" px="20px" py="10px" fontSize="14px">
+                Dashboard
+              </BwButton>
+            </RouterLink>
+            <BwButton
+              variant="primary"
+              px="20px"
+              py="10px"
+              fontSize="14px"
+              display={{ base: 'none', md: 'inline-flex' }}
+              onClick={clearToken}
+            >
+              Log out
+            </BwButton>
+          </HStack>
+        ) : (
+          <HStack gap={3}>
+            <BwButton
+              variant="outline-light"
+              px="20px"
+              py="10px"
+              fontSize="14px"
+              onClick={openLogin}
+            >
+              Login
+            </BwButton>
+            <BwButton
+              variant="primary"
+              px="20px"
+              py="10px"
+              fontSize="14px"
+              display={{ base: 'none', md: 'inline-flex' }}
+              onClick={openRegister}
+            >
+              Get started
+            </BwButton>
+          </HStack>
+        )}
       </Flex>
     </Flex>
   )

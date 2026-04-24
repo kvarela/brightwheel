@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
-import { Maximize2, X } from 'lucide-react'
+import { Maximize2, X, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
 import { useDeleteHandbookUpload } from '../hooks/useDeleteHandbookUpload'
@@ -187,9 +187,9 @@ export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
             _hover={{ bg: '#F7F9FB', color: '#5463D6' }}
             transition="all 0.2s"
             onClick={() => navigate('/handbook')}
-            title="Open full view"
+            title="Upload new handbook"
           >
-            <Maximize2 size={16} />
+            <Plus size={18} />
           </Box>
         )}
       </Box>
