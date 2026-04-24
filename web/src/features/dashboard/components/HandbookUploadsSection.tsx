@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
+import { Box, Badge, chakra, Text, Spinner, Stack } from '@chakra-ui/react'
 import { ChevronRight, X, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
@@ -56,34 +56,11 @@ function UploadRow({
   const isCompleted = upload.status === 'completed'
 
   const handleClick = () => {
-    if (isCompleted) {
-      navigate(`/handbook-uploads/${upload.id}`)
-    }
+    navigate(`/handbook-uploads/${upload.id}`)
   }
 
-  return (
-    <Box
-      as={isCompleted ? 'button' : 'div'}
-      type={isCompleted ? 'button' : undefined}
-      onClick={isCompleted ? handleClick : undefined}
-      width="100%"
-      textAlign="left"
-      bg="transparent"
-      border="none"
-      px={isCompleted ? '8px' : '0'}
-      mx={isCompleted ? '-8px' : '0'}
-      py="14px"
-      borderTop={first ? 'none' : '1px solid #EBEFF4'}
-      borderRadius={isCompleted ? '4px' : '0'}
-      display="flex"
-      alignItems="flex-start"
-      justifyContent="space-between"
-      flexWrap="wrap"
-      gap="8px"
-      cursor={isCompleted ? 'pointer' : 'default'}
-      transition="background 0.15s"
-      _hover={isCompleted ? { bg: '#F7F9FB' } : undefined}
-    >
+  const rowContent = (
+    <>
       <Box>
         <Box display="flex" alignItems="center" gap="8px" flexWrap="wrap">
           <Text fontSize="14px" fontWeight={600} color="#18181D">
@@ -109,7 +86,8 @@ function UploadRow({
         </Text>
         {isCompleted && <ChevronRight size={16} color="#737685" />}
         {!isCompleted && (
-          <Box
+          <chakra.button
+            type="button"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -127,9 +105,57 @@ function UploadRow({
             aria-label={`Delete upload ${upload.fileName}`}
           >
             <X size={16} />
-          </Box>
+          </chakra.button>
         )}
       </Box>
+    </>
+  )
+
+  if (isCompleted) {
+    return (
+      <chakra.button
+        type="button"
+        onClick={handleClick}
+        width="100%"
+        textAlign="left"
+        bg="transparent"
+        border="none"
+        px="8px"
+        mx="-8px"
+        py="14px"
+        borderTop={first ? 'none' : '1px solid #EBEFF4'}
+        borderRadius="4px"
+        display="flex"
+        alignItems="flex-start"
+        justifyContent="space-between"
+        flexWrap="wrap"
+        gap="8px"
+        cursor="pointer"
+        transition="background 0.15s"
+        _hover={{ bg: '#F7F9FB' }}
+      >
+        {rowContent}
+      </chakra.button>
+    )
+  }
+
+  return (
+    <Box
+      width="100%"
+      textAlign="left"
+      bg="transparent"
+      border="none"
+      py="14px"
+      borderTop={first ? 'none' : '1px solid #EBEFF4'}
+      display="flex"
+      alignItems="flex-start"
+      justifyContent="space-between"
+      flexWrap="wrap"
+      gap="8px"
+      cursor="default"
+      transition="background 0.15s"
+    >
+      {rowContent}
     </Box>
   )
 }

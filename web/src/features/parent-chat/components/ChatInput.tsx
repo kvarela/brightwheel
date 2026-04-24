@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
-import { Box, Flex, Text, Textarea } from '@chakra-ui/react'
+import { Box, chakra, Flex, Text, Textarea } from '@chakra-ui/react'
 
 interface ChatInputProps {
   onSend: (content: string) => void
@@ -63,8 +63,8 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             _focus={{ boxShadow: 'none', outline: 'none' }}
             disabled={disabled}
           />
-          <Box
-            as="button"
+          <chakra.button
+            type="button"
             onClick={send}
             disabled={!canSend}
             aria-label="Send message"
@@ -82,7 +82,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             flexShrink={0}
           >
             Send
-          </Box>
+          </chakra.button>
         </Flex>
         <Text fontSize="11px" color="#737685" mt="8px" textAlign="center">
           Press <Box as="span" fontWeight={600}>Enter</Box> to send ·{' '}

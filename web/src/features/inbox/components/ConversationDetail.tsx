@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { Box, Flex, Spinner, Text, Textarea } from '@chakra-ui/react'
+import { Box, chakra, Flex, Spinner, Text, Textarea } from '@chakra-ui/react'
 import { InboxState } from '@brightwheel/shared'
 import { useConversation } from '../api/useConversation'
 import { useStaffReply } from '../api/useStaffReply'
@@ -95,8 +95,8 @@ export function ConversationDetail({ conversationId }: ConversationDetailProps) 
           </Text>
         </Box>
         {!isResolved && (
-          <Box
-            as="button"
+          <chakra.button
+            type="button"
             onClick={() =>
               updateState.mutate({
                 conversationId,
@@ -116,7 +116,7 @@ export function ConversationDetail({ conversationId }: ConversationDetailProps) 
             _hover={{ bg: '#EEF1FB' }}
           >
             Mark resolved
-          </Box>
+          </chakra.button>
         )}
       </Flex>
 
@@ -164,8 +164,8 @@ export function ConversationDetail({ conversationId }: ConversationDetailProps) 
               _placeholder={{ color: '#737685' }}
               _focus={{ boxShadow: 'none', outline: 'none' }}
             />
-            <Box
-              as="button"
+            <chakra.button
+              type="button"
               onClick={handleSend}
               disabled={!canSend}
               bg={canSend ? '#5463D6' : '#EBEFF4'}
@@ -180,7 +180,7 @@ export function ConversationDetail({ conversationId }: ConversationDetailProps) 
               _hover={canSend ? { bg: '#4352c5' } : undefined}
             >
               Send
-            </Box>
+            </chakra.button>
           </Flex>
         </Box>
       </Box>
