@@ -12,13 +12,12 @@ export function App() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<LandingPage />} />
-        {/* Feature routes are registered per feature module */}
+        <Route path="/handbook" element={<HandbookUploadPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard/chats" element={<LiveChatsPage />} />
+        <Route path="/dashboard/knowledge-base" element={<KnowledgeBasePage />} />
+        <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
       </Route>
-      <Route path="/handbook" element={<HandbookUploadPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/dashboard/chats" element={<LiveChatsPage />} />
-      <Route path="/dashboard/knowledge-base" element={<KnowledgeBasePage />} />
-      <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
     </Routes>
   )
 }
