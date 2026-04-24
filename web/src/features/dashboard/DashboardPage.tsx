@@ -28,7 +28,9 @@ export function DashboardPage() {
   const unreadCount = useInboxStore((s) => s.unreadCount)
   const hasNotifications = unreadCount > 0
   const [menuOpen, setMenuOpen] = useState(false)
+  const [bellOpen, setBellOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const bellRef = useRef<HTMLDivElement>(null)
 
   const initials = currentUser ? getInitials(currentUser.fullName) : ''
 
@@ -37,19 +39,22 @@ export function DashboardPage() {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false)
       }
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setBellOpen(false)
+      }
     }
-    if (menuOpen) {
+    if (menuOpen || bellOpen) {
       document.addEventListener('mousedown', handleClickOutside)
     }
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [menuOpen])
+  }, [menuOpen, bellOpen])
 
   function handleLogout() {
     localStorage.clear()
     document.cookie.split(';').forEach((c) => {
       document.cookie = c.trim().split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/'
     })
-    window.location.href = '/login'
+    window.location.href = '/'
   }
 
   return (
@@ -106,30 +111,75 @@ export function DashboardPage() {
         {/* Right: bell + avatar */}
         <Box display="flex" alignItems="center" gap="8px">
           {/* Bell */}
-          <Box
-            position="relative"
-            width="36px"
-            height="36px"
-            borderRadius="50%"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            cursor="pointer"
-            _hover={{ bg: '#F7F9FB' }}
-            transition="background 0.2s"
-          >
-            <BellIcon active={hasNotifications} />
-            {hasNotifications && (
+          <Box position="relative" ref={bellRef}>
+            <Box
+              as="button"
+              width="36px"
+              height="36px"
+              borderRadius="50%"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
+              bg="transparent"
+              border="none"
+              outline="none"
+              _hover={{ bg: '#F7F9FB' }}
+              transition="background 0.2s"
+              onClick={() => setBellOpen((v) => !v)}
+            >
+              <BellIcon active={hasNotifications} />
+              {hasNotifications && (
+                <Box
+                  position="absolute"
+                  top="7px"
+                  right="7px"
+                  width="8px"
+                  height="8px"
+                  borderRadius="50%"
+                  bg="#CF193A"
+                  border="2px solid white"
+                />
+              )}
+            </Box>
+
+            {bellOpen && (
               <Box
                 position="absolute"
-                top="7px"
-                right="7px"
-                width="8px"
-                height="8px"
-                borderRadius="50%"
-                bg="#CF193A"
-                border="2px solid white"
-              />
+                top="calc(100% + 8px)"
+                right="0"
+                bg="white"
+                borderRadius="2px"
+                border="1px solid #EBEFF4"
+                boxShadow="0 4px 16px rgba(0,0,0,0.10)"
+                minWidth="220px"
+                zIndex={100}
+                overflow="hidden"
+              >
+                <Box px="16px" py="10px" borderBottom="1px solid #EBEFF4">
+                  <Text
+                    fontSize="13px"
+                    fontWeight={600}
+                    color="#18181D"
+                    fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
+                    textTransform="uppercase"
+                    letterSpacing="0.05em"
+                  >
+                    Notifications
+                  </Text>
+                </Box>
+                {!hasNotifications && (
+                  <Box px="16px" py="16px">
+                    <Text
+                      fontSize="14px"
+                      color="#737685"
+                      fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
+                    >
+                      You have no notifications.
+                    </Text>
+                  </Box>
+                )}
+              </Box>
             )}
           </Box>
 
