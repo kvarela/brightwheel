@@ -1,1 +1,7 @@
 export * from './school.dto'
+export * from './chat-message.dto'
+export * from './chat-session.dto'
+export * from './send-message-response.dto'
+export * from './create-chat-session.dto'
+export * from './escalation-event.dto'
+export * from './new-parent-message-event.dto'

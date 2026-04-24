@@ -4,8 +4,11 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { LoginModal } from '../features/auth/LoginModal'
 import { RegisterModal } from '../features/auth/RegisterModal'
+import { useStaffSocket } from '../hooks/useStaffSocket'
 
 export function AppLayout() {
+  useStaffSocket()
+
   return (
     <Box display="flex" flexDirection="column" minH="100vh">
       <Header />
