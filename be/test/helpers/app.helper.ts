@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
+import { getDataSourceToken } from '@nestjs/typeorm'
 import { DataSource } from 'typeorm'
 import { AppModule } from '../../src/app.module'
 
@@ -18,6 +19,6 @@ export async function createTestApp(): Promise<TestApp> {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
   await app.init()
 
-  const db = app.get(DataSource)
+  const db = app.get<DataSource>(getDataSourceToken())
   return { app, db }
 }
