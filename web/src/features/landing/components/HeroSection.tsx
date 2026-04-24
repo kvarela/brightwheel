@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
+import { SchoolSelectionModal } from '../../school/components/SchoolSelectionModal'
 
 const ROLES = [
   { id: 'admin', label: "I'm an admin or director" },
@@ -10,6 +11,14 @@ const ROLES = [
 
 export function HeroSection() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
+  const [isSchoolModalOpen, setIsSchoolModalOpen] = useState(false)
+
+  const handleRoleClick = (roleId: string) => {
+    setSelectedRole(roleId)
+    if (roleId === 'parent') {
+      setIsSchoolModalOpen(true)
+    }
+  }
 
   return (
     <Box as="section" bg="white" pt={{ base: '64px', md: '96px' }} pb={{ base: '64px', md: '96px' }}>
@@ -69,7 +78,7 @@ export function HeroSection() {
                 <Box
                   key={role.id}
                   as="button"
-                  onClick={() => setSelectedRole(role.id)}
+                  onClick={() => handleRoleClick(role.id)}
                   bg={isSelected ? '#5463D6' : 'white'}
                   color={isSelected ? 'white' : '#18181D'}
                   border={isSelected ? '1px solid #5463D6' : '1px solid #EBEFF4'}
@@ -182,6 +191,10 @@ export function HeroSection() {
           </Flex>
         </Box>
       </VStack>
+      <SchoolSelectionModal
+        isOpen={isSchoolModalOpen}
+        onClose={() => setIsSchoolModalOpen(false)}
+      />
     </Box>
   )
 }

@@ -1,2 +1,1 @@
-// Shared DTOs — added alongside each feature module
-export {}
+export * from './school.dto'

@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import { AppLayout } from './components/AppLayout'
 import { LandingPage } from './features/landing/LandingPage'
+import { ParentChatPage } from './features/parent-chat/pages/ParentChatPage'
 
 export function App() {
   return (
@@ -9,6 +10,7 @@ export function App() {
         <Route path="/" element={<LandingPage />} />
         {/* Feature routes are registered per feature module */}
       </Route>
+      <Route path="/school/:schoolId/chat" element={<ParentChatPage />} />
     </Routes>
   )
 }
