@@ -12,16 +12,13 @@ export class ObjectStorageService {
   private readonly bucket: string
 
   constructor(private readonly configService: ConfigService) {
-    const endpoint = this.configService.get<string>('RENDER_STORAGE_ENDPOINT')
-    const region = this.configService.get<string>('RENDER_STORAGE_REGION') ?? 'us-east-1'
-    const accessKeyId = this.configService.get<string>('RENDER_STORAGE_ACCESS_KEY') ?? ''
-    const secretAccessKey = this.configService.get<string>('RENDER_STORAGE_SECRET_KEY') ?? ''
-    this.bucket = this.configService.get<string>('RENDER_STORAGE_BUCKET') ?? 'brightwheel-handbooks'
+    const region = this.configService.get<string>('AWS_REGION') ?? 'us-east-1'
+    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID') ?? ''
+    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY') ?? ''
+    this.bucket = this.configService.get<string>('S3_BUCKET') ?? 'brightwheel-handbooks'
 
     this.client = new S3Client({
       region,
-      endpoint,
-      forcePathStyle: true,
       credentials: { accessKeyId, secretAccessKey },
     })
   }
