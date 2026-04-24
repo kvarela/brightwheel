@@ -18,6 +18,15 @@ export interface AuthResponse {
   }
 }
 
+export interface MeResponse {
+  id: string
+  email: string
+  fullName: string
+  role: string
+  schoolId: string
+  schoolName: string
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -55,6 +64,24 @@ export class AuthService {
         role: staffUser.role,
         schoolId: staffUser.schoolId,
       },
+    }
+  }
+
+  async getMe(staffUserId: string): Promise<MeResponse> {
+    const staffUser = await this.staffUserRepo.findOne({
+      where: { id: staffUserId },
+      relations: ['school'],
+    })
+    if (!staffUser) {
+      throw new UnauthorizedException()
+    }
+    return {
+      id: staffUser.id,
+      email: staffUser.email,
+      fullName: staffUser.fullName,
+      role: staffUser.role,
+      schoolId: staffUser.schoolId,
+      schoolName: staffUser.school.name,
     }
   }
 }
