@@ -1,13 +1,14 @@
+import { useState } from 'react'
+import axios from 'axios'
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
-import { Maximize2, ChevronRight } from 'lucide-react'
+import { ChevronRight, X, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
+import { useDeleteHandbookUpload } from '../hooks/useDeleteHandbookUpload'
 import { HandbookUpload, HandbookUploadStatus } from '../types/HandbookUpload'
+import { DeleteHandbookUploadDialog } from './DeleteHandbookUploadDialog'
 
-const STATUS_CONFIG: Record<
-  HandbookUploadStatus,
-  { label: string; bg: string; color: string }
-> = {
+const STATUS_CONFIG: Record<HandbookUploadStatus, { label: string; bg: string; color: string }> = {
   pending: { label: 'Pending', bg: '#F7F9FB', color: '#5C5E6A' },
   processing: { label: 'Processing', bg: '#FFF9E5', color: '#896507' },
   completed: { label: 'Completed', bg: '#E9F8EF', color: '#3BBA6E' },
@@ -42,7 +43,15 @@ function formatDate(dateStr: string): string {
   })
 }
 
-function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }) {
+function UploadRow({
+  upload,
+  first,
+  onRequestDelete,
+}: {
+  upload: HandbookUpload
+  first: boolean
+  onRequestDelete: (upload: HandbookUpload) => void
+}) {
   const navigate = useNavigate()
   const isCompleted = upload.status === 'completed'
 
@@ -80,12 +89,7 @@ function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }
           <Text fontSize="14px" fontWeight={600} color="#18181D">
             {upload.fileName}
           </Text>
-          <Text
-            fontSize="12px"
-            color="#737685"
-            textTransform="uppercase"
-            fontWeight={500}
-          >
+          <Text fontSize="12px" color="#737685" textTransform="uppercase" fontWeight={500}>
             {upload.fileType}
           </Text>
           <StatusBadge status={upload.status} />
@@ -99,11 +103,32 @@ function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }
           Uploaded by {upload.uploadedBy.fullName}
         </Text>
       </Box>
-      <Box display="flex" alignItems="center" gap="8px">
+      <Box display="flex" alignItems="center" gap="8px" flexShrink={0}>
         <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
           {formatDate(upload.createdAt)}
         </Text>
         {isCompleted && <ChevronRight size={16} color="#737685" />}
+        {!isCompleted && (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            width="24px"
+            height="24px"
+            borderRadius="2px"
+            border="none"
+            bg="transparent"
+            cursor="pointer"
+            color="#737685"
+            _hover={{ bg: '#FFF6F5', color: '#CF193A' }}
+            transition="all 0.2s"
+            onClick={() => onRequestDelete(upload)}
+            title="Delete upload"
+            aria-label={`Delete upload ${upload.fileName}`}
+          >
+            <X size={16} />
+          </Box>
+        )}
       </Box>
     </Box>
   )
@@ -112,6 +137,34 @@ function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }
 export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
   const navigate = useNavigate()
   const { data: uploads, isLoading, isError } = useHandbookUploads()
+  const deleteMutation = useDeleteHandbookUpload()
+  const [pendingDelete, setPendingDelete] = useState<HandbookUpload | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  const handleRequestDelete = (upload: HandbookUpload) => {
+    setDeleteError(null)
+    setPendingDelete(upload)
+  }
+
+  const handleCancelDelete = () => {
+    setPendingDelete(null)
+    setDeleteError(null)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return
+    try {
+      await deleteMutation.mutateAsync(pendingDelete.id)
+      setPendingDelete(null)
+      setDeleteError(null)
+    } catch (err) {
+      const message =
+        axios.isAxiosError(err) && typeof err.response?.data?.message === 'string'
+          ? err.response.data.message
+          : 'Failed to delete upload. Please try again.'
+      setDeleteError(message)
+    }
+  }
 
   return (
     <Box bg="white" borderRadius="2px" border="1px solid #EBEFF4" p="24px">
@@ -126,7 +179,6 @@ export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
         </Text>
         {!fullPage && (
           <Box
-            as="button"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -140,9 +192,9 @@ export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
             _hover={{ bg: '#F7F9FB', color: '#5463D6' }}
             transition="all 0.2s"
             onClick={() => navigate('/handbook')}
-            title="Open full view"
+            title="Upload new handbook"
           >
-            <Maximize2 size={16} />
+            <Plus size={18} />
           </Box>
         )}
       </Box>
@@ -169,10 +221,23 @@ export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
       {!isLoading && !isError && uploads && uploads.length > 0 && (
         <Stack gap="0">
           {uploads.map((upload, idx) => (
-            <UploadRow key={upload.id} upload={upload} first={idx === 0} />
+            <UploadRow
+              key={upload.id}
+              upload={upload}
+              first={idx === 0}
+              onRequestDelete={handleRequestDelete}
+            />
           ))}
         </Stack>
       )}
+
+      <DeleteHandbookUploadDialog
+        upload={pendingDelete}
+        isDeleting={deleteMutation.isPending}
+        errorMessage={deleteError}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </Box>
   )
 }

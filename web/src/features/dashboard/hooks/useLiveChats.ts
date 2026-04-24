@@ -3,7 +3,7 @@ import { apiClient } from '../../../lib/apiClient'
 import { ChatSession } from '../types/ChatSession'
 
 async function fetchLiveChats(): Promise<ChatSession[]> {
-  const { data } = await apiClient.get<ChatSession[]>('/api/chat-sessions')
+  const { data } = await apiClient.get<ChatSession[]>('/api/chat/sessions')
   return data
 }
 

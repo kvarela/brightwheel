@@ -102,12 +102,14 @@ This is a yarn workspaces monorepo:
 
 ### Frontend Standards
 - **One component per file.** Every React component lives in its own `.tsx` file. No barrel-style files that define multiple components.
-- **One interface per file.** Every TypeScript interface lives in its own `.ts` file under a `interfaces/` or `types/` directory co-located with the feature it belongs to.
+- **One interface per file.** Every TypeScript interface lives in its own `.ts` file under a `interfaces/` or `types/` directory co-located with the feature it belongs to. Shared DTOs in `packages/shared/src/dto/` follow the same rule — one DTO/interface per file.
 - **Type check and lint must pass before pushing.** Run `yarn typecheck` and `yarn lint` from either the `web/` directory or the monorepo root before every push. CI enforces this.
 - **Prefer icons over text labels.** Use `lucide-react` icons instead of text for actions where the meaning is clear from iconography alone (e.g. show/hide password, close, edit, delete). Only use text labels when an icon alone would be ambiguous.
 
 ### Backend Standards
 - **Unit tests required for all new features and bug fixes.** Every new service method, controller route, or utility added to the backend must have a corresponding `.spec.ts` unit test. Only external services (OpenAI, Anthropic, S3, etc.) are mocked; the test database is real.
+- **Never mock internal services.** Do not mock project-owned services (controllers, services, repositories, etc.) in tests. Wire up the real NestJS module and drive behavior through HTTP (`supertest` via the `createTestApp` helper) or the real service. Only third-party clients (OpenAI, Anthropic, S3, etc.) may be stubbed.
+- **TypeORM `relations` should use the object form.** Always write `relations: { uploadedBy: true }` instead of `relations: ['uploadedBy']` so joined relations are type-checked.
 - **Tests must pass before pushing.** Run `yarn test` from the `be/` directory or the monorepo root before every push. CI enforces this.
 - **Test database:** Unit and integration tests run against `brightwheel_test` via `DATABASE_URL_TEST`. The schema is recreated fresh on each test run via `dropSchema: true` + `synchronize: true` in the TypeORM test config. Never mock the database in tests.
 - **Database table names are singular.** TypeORM `@Entity()` table names use the singular form (e.g., `chat_session`, not `chat_sessions`). This applies to all join tables as well.

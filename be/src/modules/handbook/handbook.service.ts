@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
   ExtractedInquiryDto,
   HandbookUploadDetailDto,
+  HandbookUploadStatus,
 } from '@brightwheel/shared'
 import { HandbookUpload } from './entities/handbook-upload.entity'
 import { HandbookVersion } from './entities/handbook-version.entity'
@@ -23,7 +24,7 @@ export class HandbookService {
   findBySchool(schoolId: string): Promise<HandbookUpload[]> {
     return this.handbookUploadRepo.find({
       where: { schoolId },
-      relations: ['uploadedBy'],
+      relations: { uploadedBy: true },
       order: { createdAt: 'DESC' },
     })
   }
@@ -34,7 +35,7 @@ export class HandbookService {
   ): Promise<HandbookUploadDetailDto> {
     const upload = await this.handbookUploadRepo.findOne({
       where: { id: uploadId, schoolId },
-      relations: ['uploadedBy'],
+      relations: { uploadedBy: true },
     })
     if (!upload) {
       throw new NotFoundException(`Handbook upload ${uploadId} not found`)
@@ -72,5 +73,18 @@ export class HandbookService {
       },
       inquiries,
     }
+  }
+
+  async deleteUpload(uploadId: string, schoolId: string): Promise<void> {
+    const upload = await this.handbookUploadRepo.findOne({
+      where: { id: uploadId, schoolId },
+    })
+    if (!upload) {
+      throw new NotFoundException(`Handbook upload ${uploadId} not found`)
+    }
+    if (upload.status === HandbookUploadStatus.Completed) {
+      throw new BadRequestException('Completed handbook uploads cannot be deleted')
+    }
+    await this.handbookUploadRepo.remove(upload)
   }
 }

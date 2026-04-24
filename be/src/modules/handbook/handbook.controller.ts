@@ -1,4 +1,17 @@
-import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Request, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common'
 import {
   HandbookProcessResponseDto,
   HandbookSignedUploadResponseDto,
@@ -51,5 +64,15 @@ export class HandbookController {
     @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
   ): Promise<HandbookUploadDetailDto> {
     return this.handbookService.findUploadDetail(req.user.schoolId, uploadId)
+  }
+
+  @Delete(':uploadId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteUpload(
+    @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
+    @Request() req: { user: StaffUser },
+  ): Promise<void> {
+    await this.handbookService.deleteUpload(uploadId, req.user.schoolId)
   }
 }

@@ -1,12 +1,7 @@
 import { HandbookFileType } from '../enums/handbook-file-type.enum'
 import { HandbookUploadStatus } from '../enums/handbook-upload-status.enum'
 import { ExtractedInquiryDto } from './extracted-inquiry.dto'
-
-export interface HandbookUploadUploadedByDto {
-  id: string
-  fullName: string
-  email: string
-}
+import { HandbookUploadUploadedByDto } from './handbook-upload-uploaded-by.dto'
 
 export interface HandbookUploadDetailDto {
   id: string

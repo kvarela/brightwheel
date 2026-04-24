@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Flex, Spinner, Text } from '@chakra-ui/react'
 import { Link as RouterLink, useParams } from 'react-router-dom'
+import { MessageRole } from '@brightwheel/shared'
+import type { ChatMessageDto, StaffReplyEventDto } from '@brightwheel/shared'
 import { useSchool } from '../../school/api/useSchool'
 import type { ParentChatMessage } from '../types/ParentChatMessage'
 import { ChatHeader } from '../components/ChatHeader'
 import { ChatMessageList } from '../components/ChatMessageList'
 import { ChatInput } from '../components/ChatInput'
+import { useCreateSession } from '../api/useCreateSession'
+import { useSendMessage } from '../api/useSendMessage'
+import { useParentSocket } from '../../../hooks/useParentSocket'
 
 function createMessageId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -23,46 +28,104 @@ function buildWelcomeMessage(schoolName: string): ParentChatMessage {
   }
 }
 
+function messageFromDto(dto: ChatMessageDto): ParentChatMessage {
+  const sender: ParentChatMessage['sender'] =
+    dto.role === MessageRole.Parent
+      ? 'parent'
+      : dto.role === MessageRole.Staff
+        ? 'staff'
+        : 'ai'
+  return {
+    id: dto.id,
+    content: dto.content,
+    sender,
+    createdAt: dto.createdAt,
+  }
+}
+
 export function ParentChatPage() {
   const { schoolId } = useParams<{ schoolId: string }>()
   const { data: school, isLoading, isError } = useSchool(schoolId)
 
   const [messages, setMessages] = useState<ParentChatMessage[]>([])
-  const [isTyping, setIsTyping] = useState(false)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
+  const [errorText, setErrorText] = useState<string | null>(null)
+
+  const handleStaffReply = useCallback((event: StaffReplyEventDto) => {
+    const msg = messageFromDto(event.message)
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev
+      return [...prev, msg]
+    })
+  }, [])
+
+  useParentSocket({ sessionToken, onStaffReply: handleStaffReply })
+
+  const createSession = useCreateSession()
+  const sendMessage = useSendMessage()
+  const sessionPromiseRef = useRef<Promise<string> | null>(null)
 
   useEffect(() => {
     if (!school) return
     setMessages((prev) => (prev.length === 0 ? [buildWelcomeMessage(school.name)] : prev))
   }, [school])
 
-  const handleSend = useCallback((content: string) => {
-    const parentMessage: ParentChatMessage = {
-      id: createMessageId(),
-      sender: 'parent',
-      content,
-      createdAt: new Date().toISOString(),
-    }
-    setMessages((prev) => [...prev, parentMessage])
-    setIsTyping(true)
+  const ensureSession = useCallback(async (): Promise<string> => {
+    if (sessionToken) return sessionToken
+    if (sessionPromiseRef.current) return sessionPromiseRef.current
+    if (!schoolId) throw new Error('Missing schoolId')
 
-    window.setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: createMessageId(),
-          sender: 'ai',
-          content:
-            "Thanks for your question! I'm not connected to the school's knowledge base yet, so a staff member will get back to you shortly.",
-          createdAt: new Date().toISOString(),
-        },
-      ])
-      setIsTyping(false)
-    }, 900)
-  }, [])
+    const promise = createSession
+      .mutateAsync({ schoolId })
+      .then((res) => {
+        setSessionToken(res.sessionToken)
+        return res.sessionToken
+      })
+      .finally(() => {
+        sessionPromiseRef.current = null
+      })
+
+    sessionPromiseRef.current = promise
+    return promise
+  }, [createSession, schoolId, sessionToken])
+
+  const handleSend = useCallback(
+    async (content: string) => {
+      setErrorText(null)
+      const optimisticId = createMessageId()
+      const parentMessage: ParentChatMessage = {
+        id: optimisticId,
+        sender: 'parent',
+        content,
+        createdAt: new Date().toISOString(),
+      }
+      setMessages((prev) => [...prev, parentMessage])
+
+      try {
+        const token = await ensureSession()
+        const result = await sendMessage.mutateAsync({
+          sessionToken: token,
+          content,
+        })
+        setMessages((prev) => [
+          ...prev.filter((m) => m.id !== optimisticId),
+          messageFromDto(result.parentMessage),
+          messageFromDto(result.aiMessage),
+        ])
+      } catch (err) {
+        setErrorText(
+          err instanceof Error
+            ? err.message
+            : 'Something went wrong sending your message.',
+        )
+      }
+    },
+    [ensureSession, sendMessage],
+  )
 
   if (isLoading) {
     return (
-      <Flex h="100vh" align="center" justify="center" bg="#F7F9FB">
+      <Flex minH="60vh" align="center" justify="center" bg="#F7F9FB">
         <Spinner color="#5463D6" />
       </Flex>
     )
@@ -70,7 +133,7 @@ export function ParentChatPage() {
 
   if (isError || !school) {
     return (
-      <Flex h="100vh" align="center" justify="center" bg="#F7F9FB" px="24px">
+      <Flex minH="60vh" align="center" justify="center" bg="#F7F9FB" px="24px">
         <Box
           bg="white"
           border="1px solid #EBEFF4"
@@ -108,10 +171,19 @@ export function ParentChatPage() {
     )
   }
 
+  const isTyping = sendMessage.isPending || createSession.isPending
+
   return (
-    <Flex direction="column" h="100vh" bg="#F7F9FB">
+    <Flex direction="column" h="calc(100vh - 72px)" minH="520px" bg="#F7F9FB">
       <ChatHeader schoolName={school.name} />
       <ChatMessageList messages={messages} isTyping={isTyping} />
+      {errorText && (
+        <Box bg="#FFF6F5" borderTop="1px solid #EBEFF4" px="24px" py="8px">
+          <Text fontSize="12px" color="#CF193A" textAlign="center">
+            {errorText}
+          </Text>
+        </Box>
+      )}
       <ChatInput onSend={handleSend} disabled={isTyping} />
     </Flex>
   )

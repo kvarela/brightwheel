@@ -1,85 +1,123 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import { INestApplication } from '@nestjs/common'
+import { DataSource, Repository } from 'typeorm'
 import { getRepositoryToken } from '@nestjs/typeorm'
-import { ILike } from 'typeorm'
-import { KnowledgeBaseService } from './knowledge-base.service'
+import { KnowledgeBaseSource } from '@brightwheel/shared'
+import { createTestApp } from '../../../test/helpers/app.helper'
+import { truncateAll } from '../../../test/helpers/db.helper'
+import { School } from '../school/entities/school.entity'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
-import { BaseInquiryKey, KnowledgeBaseSource } from '@brightwheel/shared'
-
-const makeEntry = (overrides: Partial<KnowledgeBaseEntry> = {}): KnowledgeBaseEntry =>
-  ({
-    id: 'entry-1',
-    schoolId: 'school-1',
-    question: 'What are your hours?',
-    answer: 'We are open 7am–6pm.',
-    embedding: null,
-    isBaseInquiry: true,
-    baseInquiryKey: BaseInquiryKey.OperatingHours,
-    source: KnowledgeBaseSource.Manual,
-    handbookVersionId: null,
-    handbookVersion: null,
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    school: null as any,
-    ...overrides,
-  }) as KnowledgeBaseEntry
+import { KnowledgeBaseService } from './knowledge-base.service'
 
 describe('KnowledgeBaseService', () => {
+  let app: INestApplication
+  let db: DataSource
   let service: KnowledgeBaseService
-  let repo: { find: jest.Mock }
+  let schoolRepo: Repository<School>
+  let kbRepo: Repository<KnowledgeBaseEntry>
 
-  beforeEach(async () => {
-    repo = { find: jest.fn() }
+  beforeAll(async () => {
+    const testApp = await createTestApp()
+    app = testApp.app
+    db = testApp.db
+    service = app.get(KnowledgeBaseService)
+    schoolRepo = app.get(getRepositoryToken(School))
+    kbRepo = app.get(getRepositoryToken(KnowledgeBaseEntry))
+  }, 30000)
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        KnowledgeBaseService,
-        { provide: getRepositoryToken(KnowledgeBaseEntry), useValue: repo },
-      ],
-    }).compile()
-
-    service = module.get<KnowledgeBaseService>(KnowledgeBaseService)
+  afterAll(async () => {
+    await app.close()
   })
 
-  describe('findBySchool', () => {
-    it('returns all active entries without a search term', async () => {
-      const entries = [makeEntry()]
-      repo.find.mockResolvedValue(entries)
+  beforeEach(async () => {
+    await truncateAll(db)
+  })
 
-      const result = await service.findBySchool('school-1')
-
-      expect(result).toEqual(entries)
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { schoolId: 'school-1', isActive: true },
-        order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
+  describe('search (text fallback, no embedding)', () => {
+    it('returns entries matching query tokens sorted by similarity', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
       })
+      await kbRepo.save([
+        {
+          schoolId: school.id,
+          question: 'What are your operating hours?',
+          answer: 'We are open Monday through Friday from 7am to 6pm.',
+          source: KnowledgeBaseSource.Manual,
+        },
+        {
+          schoolId: school.id,
+          question: 'How much is tuition?',
+          answer: 'Tuition is $1500 per month for toddlers.',
+          source: KnowledgeBaseSource.Manual,
+        },
+      ])
+
+      const results = await service.search(school.id, 'what are your hours', null)
+
+      expect(results.length).toBeGreaterThan(0)
+      expect(results[0].entry.question.toLowerCase()).toContain('hours')
     })
 
-    it('searches question and answer fields with ILike when search provided', async () => {
-      const entries = [makeEntry()]
-      repo.find.mockResolvedValue(entries)
-
-      const result = await service.findBySchool('school-1', 'hours')
-
-      expect(result).toEqual(entries)
-      expect(repo.find).toHaveBeenCalledWith({
-        where: [
-          { schoolId: 'school-1', isActive: true, question: ILike('%hours%') },
-          { schoolId: 'school-1', isActive: true, answer: ILike('%hours%') },
-        ],
-        order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
+    it('returns an empty array when no tokens match', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
       })
+      await kbRepo.save({
+        schoolId: school.id,
+        question: 'Operating hours',
+        answer: 'Open 7am to 6pm.',
+        source: KnowledgeBaseSource.Manual,
+      })
+
+      const results = await service.search(school.id, 'xyzzy qux', null)
+
+      expect(results).toEqual([])
     })
 
-    it('ignores whitespace-only search terms', async () => {
-      repo.find.mockResolvedValue([])
-
-      await service.findBySchool('school-1', '   ')
-
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { schoolId: 'school-1', isActive: true },
-        order: { isBaseInquiry: 'DESC', createdAt: 'ASC' },
+    it('ignores inactive entries', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
       })
+      await kbRepo.save({
+        schoolId: school.id,
+        question: 'Hours?',
+        answer: 'Open.',
+        source: KnowledgeBaseSource.Manual,
+        isActive: false,
+      })
+
+      const results = await service.search(school.id, 'hours', null)
+
+      expect(results).toEqual([])
+    })
+
+    it('scopes to the given school', async () => {
+      const schoolA = await schoolRepo.save({
+        name: 'A',
+        slug: 'a',
+        isActive: true,
+      })
+      const schoolB = await schoolRepo.save({
+        name: 'B',
+        slug: 'b',
+        isActive: true,
+      })
+      await kbRepo.save({
+        schoolId: schoolB.id,
+        question: 'hours?',
+        answer: 'open',
+        source: KnowledgeBaseSource.Manual,
+      })
+
+      const results = await service.search(schoolA.id, 'hours', null)
+
+      expect(results).toEqual([])
     })
   })
 })

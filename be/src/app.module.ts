@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { getDatabaseConfig } from './config/database.config'
+import { AiModule } from './modules/ai/ai.module'
 import { AuthModule } from './modules/auth/auth.module'
 import { SchoolModule } from './modules/school/school.module'
 import { StaffUserModule } from './modules/staff-user/staff-user.module'
@@ -16,6 +17,7 @@ import { NotificationModule } from './modules/notification/notification.module'
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(getDatabaseConfig()),
+    AiModule,
     AuthModule,
     SchoolModule,
     StaffUserModule,
