@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { IsNull } from 'typeorm'
 import { Repository } from 'typeorm'
+import { AiService } from '../ai/ai.service'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
 
 export interface KbSearchResult {
@@ -11,11 +13,35 @@ export interface KbSearchResult {
 const MAX_RESULTS = 4
 
 @Injectable()
-export class KnowledgeBaseService {
+export class KnowledgeBaseService implements OnModuleInit {
+  private readonly logger = new Logger(KnowledgeBaseService.name)
+
   constructor(
     @InjectRepository(KnowledgeBaseEntry)
     private readonly kbRepository: Repository<KnowledgeBaseEntry>,
+    private readonly aiService: AiService,
   ) {}
+
+  async onModuleInit(): Promise<void> {
+    await this.backfillEmbeddings()
+  }
+
+  async backfillEmbeddings(): Promise<void> {
+    const entries = await this.kbRepository.find({
+      where: { embedding: IsNull(), isActive: true },
+    })
+    if (entries.length === 0) return
+
+    this.logger.log(`Backfilling embeddings for ${entries.length} KB entries`)
+    for (const entry of entries) {
+      const text = `${entry.question} ${entry.answer}`
+      const embedding = await this.aiService.generateEmbedding(text)
+      if (embedding) {
+        await this.kbRepository.update(entry.id, { embedding })
+      }
+    }
+    this.logger.log('Embedding backfill complete')
+  }
 
   async search(
     schoolId: string,
@@ -23,7 +49,8 @@ export class KnowledgeBaseService {
     queryEmbedding: number[] | null,
   ): Promise<KbSearchResult[]> {
     if (queryEmbedding && queryEmbedding.length > 0) {
-      return this.vectorSearch(schoolId, queryEmbedding)
+      const results = await this.vectorSearch(schoolId, queryEmbedding)
+      if (results.length > 0) return results
     }
     return this.textSearch(schoolId, question)
   }
