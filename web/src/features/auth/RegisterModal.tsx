@@ -34,6 +34,14 @@ export function RegisterModal() {
     closeRegister()
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key !== 'Enter' || e.shiftKey || isSubmitting) return
+    const target = e.target as HTMLElement
+    if (target.closest('[data-school-select]')) return
+    e.preventDefault()
+    void handleSubmit(onSubmit)()
+  }
+
   const onSubmit = async (data: RegisterFormData) => {
     if (!schoolSelection) {
       setSchoolError('Please select or add your school')
@@ -105,7 +113,7 @@ export function RegisterModal() {
             </Dialog.Header>
 
             <Dialog.Body pt="0">
-              <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+              <Box as="form" onSubmit={handleSubmit(onSubmit)} onKeyDown={handleKeyDown}>
                 {/* Full name */}
                 <Box mb="4">
                   <Text fontSize="14px" fontWeight="500" color="#5C5E6A" mb="1">

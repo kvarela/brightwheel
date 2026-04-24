@@ -86,12 +86,29 @@ export function SchoolSelect({ value, onChange, hasError }: SchoolSelectProps) {
   const exactMatch = results.some((r) => r.name.toLowerCase() === query.trim().toLowerCase())
   const showAddOption = query.trim().length > 0 && !exactMatch
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return
+    if (!isOpen || !query.trim()) return
+    if (isLoading) {
+      e.preventDefault()
+      return
+    }
+    if (results.length > 0) {
+      e.preventDefault()
+      handleSelect(results[0])
+    } else if (showAddOption) {
+      e.preventDefault()
+      handleAddNew()
+    }
+  }
+
   return (
-    <Box position="relative" ref={containerRef}>
+    <Box position="relative" ref={containerRef} data-school-select>
       <Input
         value={query}
         onChange={handleInputChange}
         onFocus={() => query.trim() && setIsOpen(true)}
+        onKeyDown={handleKeyDown}
         placeholder="Search for your school…"
         border="1px solid"
         borderColor={hasError ? '#CF193A' : '#EBEFF4'}
