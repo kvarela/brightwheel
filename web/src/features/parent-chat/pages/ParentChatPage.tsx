@@ -62,7 +62,7 @@ export function ParentChatPage() {
 
   if (isLoading) {
     return (
-      <Flex h="100vh" align="center" justify="center" bg="#F7F9FB">
+      <Flex minH="60vh" align="center" justify="center" bg="#F7F9FB">
         <Spinner color="#5463D6" />
       </Flex>
     )
@@ -70,7 +70,7 @@ export function ParentChatPage() {
 
   if (isError || !school) {
     return (
-      <Flex h="100vh" align="center" justify="center" bg="#F7F9FB" px="24px">
+      <Flex minH="60vh" align="center" justify="center" bg="#F7F9FB" px="24px">
         <Box
           bg="white"
           border="1px solid #EBEFF4"
@@ -109,7 +109,7 @@ export function ParentChatPage() {
   }
 
   return (
-    <Flex direction="column" h="100vh" bg="#F7F9FB">
+    <Flex direction="column" h="calc(100vh - 72px)" minH="520px" bg="#F7F9FB">
       <ChatHeader schoolName={school.name} />
       <ChatMessageList messages={messages} isTyping={isTyping} />
       <ChatInput onSend={handleSend} disabled={isTyping} />

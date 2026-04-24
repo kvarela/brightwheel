@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect } from 'react'
 import { Box, Text } from '@chakra-ui/react'
+import { Link as RouterLink } from 'react-router-dom'
 import { LiveChatsSection } from './components/LiveChatsSection'
 import { HandbookUploadsSection } from './components/HandbookUploadsSection'
 import { KnowledgeBaseSection } from './components/KnowledgeBaseSection'
 import { useCurrentUser } from './hooks/useCurrentUser'
 import { useInboxStore } from '../../store/inboxStore'
 import { useAuthStore } from '../../store/authStore'
+import { BrightwheelLogo } from '../../components/BrightwheelLogo'
 
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/)
@@ -18,7 +20,7 @@ function BellIcon({ active }: { active: boolean }) {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-        fill={active ? '#18181D' : '#737685'}
+        fill={active ? 'white' : 'rgba(255,255,255,0.6)'}
       />
     </svg>
   )
@@ -59,45 +61,37 @@ export function DashboardPage() {
 
   return (
     <Box
-      minHeight="100vh"
       bg="#F7F9FB"
       fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
     >
       <Box
         as="header"
-        bg="white"
-        borderBottom="1px solid #EBEFF4"
+        bg="#1E2549"
         px={{ base: '16px', md: '40px' }}
         height="60px"
         display="flex"
         alignItems="center"
         justifyContent="space-between"
       >
-        {/* Left: title + school name */}
+        {/* Left: logo + school name */}
         <Box display="flex" alignItems="center" gap="12px">
-          <Text
-            fontSize="18px"
-            fontWeight={600}
-            color="#1E2549"
-            fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
-            whiteSpace="nowrap"
-          >
-            Brightwheel AI Front Desk
-          </Text>
+          <RouterLink to="/" style={{ textDecoration: 'none' }}>
+            <BrightwheelLogo />
+          </RouterLink>
           {currentUser?.schoolName && (
             <>
-              <Box flexShrink={0} width="1px" height="18px" bg="#EBEFF4" />
+              <Box flexShrink={0} width="1px" height="18px" bg="rgba(255,255,255,0.15)" />
               <Box
                 px="10px"
                 py="3px"
-                bg="#F7F9FB"
-                border="1px solid #EBEFF4"
+                bg="rgba(255,255,255,0.08)"
+                border="1px solid rgba(255,255,255,0.15)"
                 borderRadius="2px"
               >
                 <Text
                   fontSize="13px"
                   fontWeight={500}
-                  color="#5C5E6A"
+                  color="rgba(255,255,255,0.75)"
                   fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
                   whiteSpace="nowrap"
                 >
@@ -124,7 +118,7 @@ export function DashboardPage() {
               bg="transparent"
               border="none"
               outline="none"
-              _hover={{ bg: '#F7F9FB' }}
+              _hover={{ bg: 'rgba(255,255,255,0.1)' }}
               transition="background 0.2s"
               onClick={() => setBellOpen((v) => !v)}
             >
@@ -190,7 +184,7 @@ export function DashboardPage() {
               width="36px"
               height="36px"
               borderRadius="50%"
-              bg="#5463D6"
+              bg="#29B9BB"
               display="flex"
               alignItems="center"
               justifyContent="center"
@@ -198,7 +192,7 @@ export function DashboardPage() {
               flexShrink={0}
               border="none"
               outline="none"
-              _hover={{ bg: '#4452C4' }}
+              _hover={{ bg: '#22A5A7' }}
               transition="background 0.2s"
               onClick={() => setMenuOpen((v) => !v)}
             >
