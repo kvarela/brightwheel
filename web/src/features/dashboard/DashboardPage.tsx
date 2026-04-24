@@ -74,8 +74,8 @@ export function DashboardPage() {
         justifyContent="space-between"
       >
         {/* Left: logo + school name */}
-        <Box display="flex" alignItems="center" gap="12px">
-          <RouterLink to="/" style={{ textDecoration: 'none' }}>
+        <Box display="flex" alignItems="center" gap="12px" minWidth={0} flex="1 1 auto">
+          <RouterLink to="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
             <BrightwheelLogo />
           </RouterLink>
           {currentUser?.schoolName && (
@@ -87,6 +87,8 @@ export function DashboardPage() {
                 bg="rgba(255,255,255,0.08)"
                 border="1px solid rgba(255,255,255,0.15)"
                 borderRadius="2px"
+                minWidth={0}
+                overflow="hidden"
               >
                 <Text
                   fontSize="13px"
@@ -94,6 +96,8 @@ export function DashboardPage() {
                   color="rgba(255,255,255,0.75)"
                   fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
                   whiteSpace="nowrap"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
                 >
                   {currentUser.schoolName}
                 </Text>
@@ -103,7 +107,7 @@ export function DashboardPage() {
         </Box>
 
         {/* Right: bell + avatar */}
-        <Box display="flex" alignItems="center" gap="8px">
+        <Box display="flex" alignItems="center" gap="8px" flexShrink={0} ml="8px">
           {/* Bell */}
           <Box position="relative" ref={bellRef}>
             <Box
