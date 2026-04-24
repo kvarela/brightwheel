@@ -120,4 +120,32 @@ describe('KnowledgeBaseService', () => {
       expect(results).toEqual([])
     })
   })
+
+  describe('create', () => {
+    it('persists a manual entry for the school and trims whitespace', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
+      })
+
+      const result = await service.create(school.id, {
+        question: '  New question?  ',
+        answer: '  New answer.  ',
+      })
+
+      expect(result.id).toBeDefined()
+      expect(result.schoolId).toBe(school.id)
+      expect(result.question).toBe('New question?')
+      expect(result.answer).toBe('New answer.')
+      expect(result.source).toBe(KnowledgeBaseSource.Manual)
+      expect(result.isBaseInquiry).toBe(false)
+      expect(result.baseInquiryKey).toBeNull()
+      expect(result.isActive).toBe(true)
+
+      const stored = await kbRepo.findOneByOrFail({ id: result.id })
+      expect(stored.question).toBe('New question?')
+      expect(stored.answer).toBe('New answer.')
+    })
+  })
 })
