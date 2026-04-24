@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ILike, IsNull } from 'typeorm'
 import { Repository } from 'typeorm'
+import { KnowledgeBaseSource } from '@brightwheel/shared'
 import { AiService } from '../ai/ai.service'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
 
@@ -113,6 +114,35 @@ export class KnowledgeBaseService implements OnModuleInit {
       .slice(0, MAX_RESULTS)
 
     return scored
+  }
+
+  // Creates a KB entry from a resolved escalation (parent question + staff reply).
+  // Returns null if an entry already exists for this chat session (dedupe).
+  async createFromEscalation(params: {
+    schoolId: string
+    chatSessionId: string
+    question: string
+    answer: string
+  }): Promise<KnowledgeBaseEntry | null> {
+    const existing = await this.kbRepository.findOne({
+      where: { sourceChatSessionId: params.chatSessionId },
+    })
+    if (existing) return null
+
+    const embedding = await this.aiService.generateEmbedding(
+      `${params.question} ${params.answer}`,
+    )
+
+    const entry = this.kbRepository.create({
+      schoolId: params.schoolId,
+      question: params.question,
+      answer: params.answer,
+      source: KnowledgeBaseSource.EscalationLearning,
+      sourceChatSessionId: params.chatSessionId,
+      embedding: embedding ?? null,
+      isActive: true,
+    })
+    return this.kbRepository.save(entry)
   }
 
   async findBySchool(schoolId: string, search?: string): Promise<KnowledgeBaseEntry[]> {

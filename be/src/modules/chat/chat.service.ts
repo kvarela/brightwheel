@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto'
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
@@ -25,6 +25,8 @@ import { MessageKnowledgeBaseEntry } from './entities/message-knowledge-base-ent
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name)
+
   constructor(
     @InjectRepository(ChatSession)
     private readonly sessionRepository: Repository<ChatSession>,
@@ -228,6 +230,12 @@ export class ChatService {
     if (!session) throw new NotFoundException('Conversation not found')
     if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
 
+    const existingStaffReply = await this.messageRepository.findOne({
+      where: { chatSessionId: session.id, role: MessageRole.Staff },
+      select: ['id'],
+    })
+    const wasFirstStaffReply = !existingStaffReply
+
     if (session.inboxState === InboxState.NeedsAttention || !session.inboxState) {
       session.inboxState = InboxState.InProgress
       session.assignedStaffId = staff.sub
@@ -253,7 +261,53 @@ export class ChatService {
       message: messageDto,
     })
 
+    if (wasFirstStaffReply) {
+      try {
+        await this.addEscalationAnswerToKnowledgeBase(session, content)
+      } catch (err) {
+        // KB promotion is best-effort — never fail a staff reply because of it.
+        this.logger.error(
+          `Failed to add escalation answer to KB for session ${session.id}`,
+          err as Error,
+        )
+      }
+    }
+
     return messageDto
+  }
+
+  // When staff sends the first reply to an escalated conversation, promote the
+  // (parent question → staff answer) pair into the school's knowledge base so
+  // the AI can handle the same question next time.
+  private async addEscalationAnswerToKnowledgeBase(
+    session: ChatSession,
+    staffReply: string,
+  ): Promise<void> {
+    const trigger = await this.messageRepository.findOne({
+      where: {
+        chatSessionId: session.id,
+        role: MessageRole.Ai,
+        isEscalationTrigger: true,
+      },
+      order: { createdAt: 'ASC' },
+    })
+    if (!trigger) return
+
+    const parentQuestion = await this.messageRepository
+      .createQueryBuilder('m')
+      .where('m.chatSessionId = :sessionId', { sessionId: session.id })
+      .andWhere('m.role = :role', { role: MessageRole.Parent })
+      .andWhere('m.createdAt <= :triggerAt', { triggerAt: trigger.createdAt })
+      .orderBy('m.createdAt', 'DESC')
+      .getOne()
+    if (!parentQuestion) return
+
+    await this.kbService.createFromEscalation({
+      schoolId: session.schoolId,
+      chatSessionId: session.id,
+      question: parentQuestion.content,
+      answer: staffReply,
+    })
   }
 
   async updateInboxState(
