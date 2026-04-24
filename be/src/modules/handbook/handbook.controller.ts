@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post } from '@nestjs/common'
+import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Request } from '@nestjs/common'
 import {
   HandbookProcessResponseDto,
   HandbookSignedUploadResponseDto,
@@ -8,6 +8,8 @@ import { CreateSignedUploadDto } from './dto/create-signed-upload.dto'
 import { ProcessHandbookDto } from './dto/process-handbook.dto'
 import { HandbookUploadService } from './services/handbook-upload.service'
 import { HandbookRequestContextService } from './services/handbook-request-context.service'
+import { HandbookService } from './handbook.service'
+import { StaffUser } from '../staff-user/entities/staff-user.entity'
 
 const SCHOOL_HEADER = 'x-school-id'
 const STAFF_HEADER = 'x-staff-user-id'
@@ -17,6 +19,7 @@ export class HandbookController {
   constructor(
     private readonly uploadService: HandbookUploadService,
     private readonly contextService: HandbookRequestContextService,
+    private readonly handbookService: HandbookService,
   ) {}
 
   @Post('uploads/signed-url')
@@ -25,17 +28,12 @@ export class HandbookController {
     @Headers(SCHOOL_HEADER) schoolHeader?: string,
     @Headers(STAFF_HEADER) staffHeader?: string,
   ): Promise<HandbookSignedUploadResponseDto> {
-    const { schoolId, staffUserId } = await this.contextService.resolve(
-      schoolHeader,
-      staffHeader,
-    )
+    const { schoolId, staffUserId } = await this.contextService.resolve(schoolHeader, staffHeader)
     return this.uploadService.createSignedUpload(schoolId, staffUserId, body)
   }
 
   @Post('uploads/process')
-  async processUpload(
-    @Body() body: ProcessHandbookDto,
-  ): Promise<HandbookProcessResponseDto> {
+  async processUpload(@Body() body: ProcessHandbookDto): Promise<HandbookProcessResponseDto> {
     return this.uploadService.processUpload(body.uploadId)
   }
 
@@ -44,5 +42,10 @@ export class HandbookController {
     @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
   ): Promise<HandbookUploadStatusResponseDto> {
     return this.uploadService.getUploadStatus(uploadId)
+  }
+
+  @Get()
+  getUploads(@Request() req: { user: StaffUser }) {
+    return this.handbookService.findBySchool(req.user.schoolId)
   }
 }
