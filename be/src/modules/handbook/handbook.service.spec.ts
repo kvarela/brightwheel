@@ -1,115 +1,145 @@
+import 'reflect-metadata'
 import { BadRequestException, NotFoundException } from '@nestjs/common'
-import { Test, TestingModule } from '@nestjs/testing'
-import { getRepositoryToken } from '@nestjs/typeorm'
-import { HandbookService } from './handbook.service'
+import { ConfigModule } from '@nestjs/config'
+import { Test } from '@nestjs/testing'
+import { TypeOrmModule, getDataSourceToken } from '@nestjs/typeorm'
+import { DataSource } from 'typeorm'
+import { HandbookFileType, HandbookUploadStatus } from '@brightwheel/shared'
+import { getDatabaseConfig } from '../../config/database.config'
+import { School } from '../school/entities/school.entity'
+import { StaffUser } from '../staff-user/entities/staff-user.entity'
 import { HandbookUpload } from './entities/handbook-upload.entity'
-import { HandbookUploadStatus, HandbookFileType } from '@brightwheel/shared'
-
-const makeUpload = (overrides: Partial<HandbookUpload> = {}): HandbookUpload =>
-  ({
-    id: 'upload-1',
-    schoolId: 'school-1',
-    fileKey: 's3/key.pdf',
-    fileName: 'handbook.pdf',
-    fileType: HandbookFileType.Pdf,
-    status: HandbookUploadStatus.Completed,
-    uploadedById: 'staff-1',
-    errorMessage: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    school: null as any,
-    uploadedBy: { id: 'staff-1', fullName: 'Jane', email: 'jane@school.com' } as any,
-    ...overrides,
-  }) as HandbookUpload
+import { HandbookService } from './handbook.service'
+import { createTestSchool, createTestStaffUser } from '../../../test/helpers/factories'
 
 describe('HandbookService', () => {
+  let db: DataSource
   let service: HandbookService
-  let repo: { find: jest.Mock; findOne: jest.Mock; remove: jest.Mock }
+  let school: School
+  let otherSchool: School
+  let staff: StaffUser
 
-  beforeEach(async () => {
-    repo = { find: jest.fn(), findOne: jest.fn(), remove: jest.fn() }
+  beforeAll(async () => {
+    process.env.NODE_ENV = 'test'
+    process.env.DATABASE_URL_TEST =
+      process.env.DATABASE_URL_TEST ??
+      'postgresql://bw:bw@localhost:5432/brightwheel_test'
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        HandbookService,
-        { provide: getRepositoryToken(HandbookUpload), useValue: repo },
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        TypeOrmModule.forRoot(getDatabaseConfig()),
+        TypeOrmModule.forFeature([School, StaffUser, HandbookUpload]),
       ],
+      providers: [HandbookService],
     }).compile()
 
-    service = module.get<HandbookService>(HandbookService)
+    db = moduleRef.get<DataSource>(getDataSourceToken())
+    service = moduleRef.get(HandbookService)
   })
+
+  beforeEach(async () => {
+    for (const entity of db.entityMetadatas) {
+      await db.getRepository(entity.name).query(`TRUNCATE TABLE "${entity.tableName}" CASCADE`)
+    }
+    school = await createTestSchool(db)
+    otherSchool = await createTestSchool(db)
+    staff = await createTestStaffUser(db, school.id)
+  })
+
+  afterAll(async () => {
+    await db.destroy()
+  })
+
+  async function seedUpload(
+    overrides: Partial<HandbookUpload> = {},
+  ): Promise<HandbookUpload> {
+    const repo = db.getRepository(HandbookUpload)
+    return repo.save(
+      repo.create({
+        schoolId: overrides.schoolId ?? school.id,
+        uploadedById: overrides.uploadedById ?? staff.id,
+        fileName: overrides.fileName ?? 'handbook.pdf',
+        fileType: overrides.fileType ?? HandbookFileType.Pdf,
+        fileKey: overrides.fileKey ?? 'schools/x/handbooks/y/handbook.pdf',
+        status: overrides.status ?? HandbookUploadStatus.Pending,
+      }),
+    )
+  }
 
   describe('findBySchool', () => {
     it('returns uploads for the school ordered by createdAt DESC', async () => {
-      const uploads = [makeUpload(), makeUpload({ id: 'upload-2', status: HandbookUploadStatus.Processing })]
-      repo.find.mockResolvedValue(uploads)
+      const older = await seedUpload({ fileName: 'older.pdf' })
+      // Force a deterministic ordering gap.
+      await db
+        .getRepository(HandbookUpload)
+        .update(older.id, { createdAt: new Date(Date.now() - 60_000) })
+      const newer = await seedUpload({ fileName: 'newer.pdf' })
 
-      const result = await service.findBySchool('school-1')
+      const result = await service.findBySchool(school.id)
 
-      expect(result).toEqual(uploads)
-      expect(repo.find).toHaveBeenCalledWith({
-        where: { schoolId: 'school-1' },
-        relations: ['uploadedBy'],
-        order: { createdAt: 'DESC' },
-      })
+      expect(result.map((u) => u.id)).toEqual([newer.id, older.id])
+      expect(result[0].uploadedBy.id).toBe(staff.id)
+    })
+
+    it('scopes results to the requested school', async () => {
+      await seedUpload()
+      const result = await service.findBySchool(otherSchool.id)
+      expect(result).toEqual([])
     })
 
     it('returns empty array when no uploads exist', async () => {
-      repo.find.mockResolvedValue([])
-      const result = await service.findBySchool('school-1')
+      const result = await service.findBySchool(school.id)
       expect(result).toEqual([])
     })
   })
 
   describe('deleteUpload', () => {
-    it('removes a pending upload scoped to the school', async () => {
-      const upload = makeUpload({ status: HandbookUploadStatus.Pending })
-      repo.findOne.mockResolvedValue(upload)
+    it.each([
+      HandbookUploadStatus.Pending,
+      HandbookUploadStatus.Processing,
+      HandbookUploadStatus.Failed,
+    ])('removes an upload in status %s', async (status) => {
+      const upload = await seedUpload({ status })
 
-      await service.deleteUpload('upload-1', 'school-1')
+      await service.deleteUpload(upload.id, school.id)
 
-      expect(repo.findOne).toHaveBeenCalledWith({
-        where: { id: 'upload-1', schoolId: 'school-1' },
-      })
-      expect(repo.remove).toHaveBeenCalledWith(upload)
+      const reloaded = await db
+        .getRepository(HandbookUpload)
+        .findOne({ where: { id: upload.id } })
+      expect(reloaded).toBeNull()
     })
 
-    it('removes a failed upload', async () => {
-      const upload = makeUpload({ status: HandbookUploadStatus.Failed })
-      repo.findOne.mockResolvedValue(upload)
+    it('throws NotFoundException when the upload belongs to a different school', async () => {
+      const upload = await seedUpload()
 
-      await service.deleteUpload('upload-1', 'school-1')
-
-      expect(repo.remove).toHaveBeenCalledWith(upload)
-    })
-
-    it('removes a processing upload', async () => {
-      const upload = makeUpload({ status: HandbookUploadStatus.Processing })
-      repo.findOne.mockResolvedValue(upload)
-
-      await service.deleteUpload('upload-1', 'school-1')
-
-      expect(repo.remove).toHaveBeenCalledWith(upload)
-    })
-
-    it('throws NotFoundException when the upload does not exist for the school', async () => {
-      repo.findOne.mockResolvedValue(null)
-
-      await expect(service.deleteUpload('upload-1', 'school-1')).rejects.toThrow(
+      await expect(service.deleteUpload(upload.id, otherSchool.id)).rejects.toThrow(
         NotFoundException,
       )
-      expect(repo.remove).not.toHaveBeenCalled()
+
+      const reloaded = await db
+        .getRepository(HandbookUpload)
+        .findOneOrFail({ where: { id: upload.id } })
+      expect(reloaded.id).toBe(upload.id)
+    })
+
+    it('throws NotFoundException when the upload does not exist', async () => {
+      await expect(
+        service.deleteUpload('00000000-0000-0000-0000-000000000000', school.id),
+      ).rejects.toThrow(NotFoundException)
     })
 
     it('throws BadRequestException when the upload is completed', async () => {
-      repo.findOne.mockResolvedValue(
-        makeUpload({ status: HandbookUploadStatus.Completed }),
-      )
+      const upload = await seedUpload({ status: HandbookUploadStatus.Completed })
 
-      await expect(service.deleteUpload('upload-1', 'school-1')).rejects.toThrow(
+      await expect(service.deleteUpload(upload.id, school.id)).rejects.toThrow(
         BadRequestException,
       )
-      expect(repo.remove).not.toHaveBeenCalled()
+
+      const reloaded = await db
+        .getRepository(HandbookUpload)
+        .findOneOrFail({ where: { id: upload.id } })
+      expect(reloaded.status).toBe(HandbookUploadStatus.Completed)
     })
   })
 })
