@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
 import { BwButton } from '../../../components/BwButton'
 import { useAuthStore } from '../../../store/authStore'
+import { SchoolSelectionModal } from '../../school/components/SchoolSelectionModal'
 
 const ROLES = [
   { id: 'admin', label: "I'm an admin or director" },
@@ -12,9 +13,22 @@ const ROLES = [
 export function HeroSection() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
   const { openLogin, openRegister } = useAuthStore()
+  const [isSchoolModalOpen, setIsSchoolModalOpen] = useState(false)
+
+  const handleRoleClick = (roleId: string) => {
+    setSelectedRole(roleId)
+    if (roleId === 'parent') {
+      setIsSchoolModalOpen(true)
+    }
+  }
 
   return (
-    <Box as="section" bg="white" pt={{ base: '64px', md: '96px' }} pb={{ base: '64px', md: '96px' }}>
+    <Box
+      as="section"
+      bg="white"
+      pt={{ base: '64px', md: '96px' }}
+      pb={{ base: '64px', md: '96px' }}
+    >
       <VStack gap={0} maxW="1200px" mx="auto" px={{ base: '16px', md: '32px' }}>
         <VStack gap={6} maxW="760px" mx="auto" textAlign="center">
           <Box
@@ -60,18 +74,14 @@ export function HeroSection() {
           <Text fontSize="14px" color="#737685" mb={3} textAlign="center" fontWeight={500}>
             Get started — choose your role
           </Text>
-          <Flex
-            direction={{ base: 'column', sm: 'row' }}
-            gap={3}
-            justify="center"
-          >
+          <Flex direction={{ base: 'column', sm: 'row' }} gap={3} justify="center">
             {ROLES.map((role) => {
               const isSelected = selectedRole === role.id
               return (
                 <Box
                   key={role.id}
                   as="button"
-                  onClick={() => setSelectedRole(role.id)}
+                  onClick={() => handleRoleClick(role.id)}
                   bg={isSelected ? '#5463D6' : 'white'}
                   color={isSelected ? 'white' : '#18181D'}
                   border={isSelected ? '1px solid #5463D6' : '1px solid #EBEFF4'}
@@ -87,7 +97,9 @@ export function HeroSection() {
                     borderColor: '#5463D6',
                     color: isSelected ? 'white' : '#5463D6',
                   }}
-                  boxShadow={isSelected ? '0 2px 8px rgba(84,99,214,0.3)' : '0 1px 3px rgba(0,0,0,0.06)'}
+                  boxShadow={
+                    isSelected ? '0 2px 8px rgba(84,99,214,0.3)' : '0 1px 3px rgba(0,0,0,0.06)'
+                  }
                 >
                   {role.label}
                 </Box>
@@ -108,11 +120,7 @@ export function HeroSection() {
             >
               Get started free
             </BwButton>
-            <BwButton
-              variant="link"
-              fontSize="14px"
-              onClick={openLogin}
-            >
+            <BwButton variant="link" fontSize="14px" onClick={openLogin}>
               Already using brightwheel? Log in →
             </BwButton>
           </Flex>
@@ -143,7 +151,8 @@ export function HeroSection() {
                 <Box flex={1}>
                   <Box bg="#5463D6" borderRadius="2px" p={3} mb={2} maxW="280px">
                     <Text fontSize="13px" color="white" lineHeight={1.5}>
-                      Hi! Our AI assistant is here to help. What would you like to know about our program?
+                      Hi! Our AI assistant is here to help. What would you like to know about our
+                      program?
                     </Text>
                   </Box>
                   <Box bg="#F7F9FB" borderRadius="2px" p={3} maxW="240px" ml="auto">
@@ -153,7 +162,8 @@ export function HeroSection() {
                   </Box>
                   <Box bg="#5463D6" borderRadius="2px" p={3} mt={2} maxW="300px">
                     <Text fontSize="13px" color="white" lineHeight={1.5}>
-                      Drop-off is from 7:30 AM to 9:00 AM Monday–Friday. Late arrivals should call ahead!
+                      Drop-off is from 7:30 AM to 9:00 AM Monday–Friday. Late arrivals should call
+                      ahead!
                     </Text>
                   </Box>
                 </Box>
@@ -173,6 +183,10 @@ export function HeroSection() {
           </Flex>
         </Box>
       </VStack>
+      <SchoolSelectionModal
+        isOpen={isSchoolModalOpen}
+        onClose={() => setIsSchoolModalOpen(false)}
+      />
     </Box>
   )
 }

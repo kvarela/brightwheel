@@ -27,6 +27,8 @@ jobs:
           node-version: '20'
           cache: 'yarn'
       - run: yarn install --frozen-lockfile
+      - name: Build shared package
+        run: yarn workspace @brightwheel/shared build
       - name: Type check
         run: yarn workspace @brightwheel/be typecheck
       - name: Lint
