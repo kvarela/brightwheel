@@ -34,18 +34,15 @@ export function FooterCTASection() {
             maxW="480px"
             lineHeight={1.6}
           >
-            Join thousands of childcare programs answering parent questions 24/7. No credit card required.
+            Join thousands of childcare programs answering parent questions 24/7. No credit card
+            required.
           </Text>
 
           <Box w="full" maxW="600px" mt={2}>
             <Text fontSize="14px" color="rgba(255,255,255,0.7)" mb={3} fontWeight={500}>
               Choose your role to get started
             </Text>
-            <Flex
-              direction={{ base: 'column', sm: 'row' }}
-              gap={3}
-              justify="center"
-            >
+            <Flex direction={{ base: 'column', sm: 'row' }} gap={3} justify="center">
               {ROLES.map((role) => {
                 const isSelected = selectedRole === role.id
                 return (

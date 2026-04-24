@@ -48,13 +48,7 @@ export function Header() {
         </HStack>
 
         <HStack gap={3}>
-          <BwButton
-            variant="outline-light"
-            px="20px"
-            py="10px"
-            fontSize="14px"
-            onClick={openLogin}
-          >
+          <BwButton variant="outline-light" px="20px" py="10px" fontSize="14px" onClick={openLogin}>
             Login
           </BwButton>
           <BwButton

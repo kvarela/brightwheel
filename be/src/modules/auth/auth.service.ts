@@ -4,27 +4,47 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
-import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcryptjs'
-import { StaffRole } from '@brightwheel/shared'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
+import { JwtPayload } from './strategies/jwt.strategy'
 import { School } from '../school/entities/school.entity'
-import type { JwtPayload } from './interfaces/jwt-payload.interface'
+import { StaffRole } from '@brightwheel/shared'
+
+export interface AuthResponse {
+  accessToken: string
+  staffUser: {
+    id: string
+    email: string
+    fullName: string
+    role: string
+    schoolId: string
+  }
+}
+
+export interface MeResponse {
+  id: string
+  email: string
+  fullName: string
+  role: string
+  schoolId: string
+  schoolName: string
+}
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(StaffUser)
-    private staffUserRepository: Repository<StaffUser>,
+    private staffUserRepo: Repository<StaffUser>,
     @InjectRepository(School)
     private schoolRepository: Repository<School>,
     private jwtService: JwtService,
   ) {}
 
   async login(email: string, password: string): Promise<{ accessToken: string }> {
-    const staffUser = await this.staffUserRepository.findOne({
+    const staffUser = await this.staffUserRepo.findOne({
       where: { email, isActive: true },
     })
 
@@ -32,12 +52,39 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials')
     }
 
-    const isPasswordValid = await bcrypt.compare(password, staffUser.passwordHash)
-    if (!isPasswordValid) {
+    const passwordValid = await bcrypt.compare(password, staffUser.passwordHash)
+    if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials')
     }
 
-    return { accessToken: this.sign(staffUser) }
+    const payload: JwtPayload = {
+      sub: staffUser.id,
+      email: staffUser.email,
+      schoolId: staffUser.schoolId,
+      role: staffUser.role,
+    }
+
+    return {
+      accessToken: this.jwtService.sign(payload),
+    }
+  }
+
+  async getMe(staffUserId: string): Promise<MeResponse> {
+    const staffUser = await this.staffUserRepo.findOne({
+      where: { id: staffUserId },
+      relations: ['school'],
+    })
+    if (!staffUser) {
+      throw new UnauthorizedException()
+    }
+    return {
+      id: staffUser.id,
+      email: staffUser.email,
+      fullName: staffUser.fullName,
+      role: staffUser.role,
+      schoolId: staffUser.schoolId,
+      schoolName: staffUser.school.name,
+    }
   }
 
   async register(
@@ -47,7 +94,7 @@ export class AuthService {
     schoolId: string | null | undefined,
     newSchoolName: string | null | undefined,
   ): Promise<{ accessToken: string }> {
-    const existing = await this.staffUserRepository.findOne({ where: { email } })
+    const existing = await this.staffUserRepo.findOne({ where: { email } })
     if (existing) {
       throw new ConflictException('An account with this email already exists')
     }
@@ -70,7 +117,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
-    const staffUser = await this.staffUserRepository.save({
+    const staffUser = await this.staffUserRepo.save({
       fullName,
       email,
       passwordHash,
