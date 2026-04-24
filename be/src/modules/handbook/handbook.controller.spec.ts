@@ -24,6 +24,7 @@ describe('HandbookController', () => {
 
     handbookService = {
       findBySchool: jest.fn(),
+      findUploadDetail: jest.fn(),
     } as unknown as jest.Mocked<HandbookService>
 
     const moduleRef = await Test.createTestingModule({
@@ -100,5 +101,20 @@ describe('HandbookController', () => {
 
     expect(handbookService.findBySchool).toHaveBeenCalledWith('school-42')
     expect(result).toBe(uploads)
+  })
+
+  it('returns upload detail scoped to the staff user\'s school', async () => {
+    const detail = {
+      id: 'u1',
+      fileName: 'handbook.pdf',
+      inquiries: [],
+    } as never
+    handbookService.findUploadDetail.mockResolvedValue(detail)
+
+    const req = { user: { schoolId: 'school-42' } } as never
+    const result = await controller.getUploadDetail(req, 'u1')
+
+    expect(handbookService.findUploadDetail).toHaveBeenCalledWith('school-42', 'u1')
+    expect(result).toBe(detail)
   })
 })

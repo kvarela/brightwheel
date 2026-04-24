@@ -1,5 +1,5 @@
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
-import { Maximize2 } from 'lucide-react'
+import { Maximize2, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
 import { HandbookUpload, HandbookUploadStatus } from '../types/HandbookUpload'
@@ -43,15 +43,37 @@ function formatDate(dateStr: string): string {
 }
 
 function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }) {
+  const navigate = useNavigate()
+  const isCompleted = upload.status === 'completed'
+
+  const handleClick = () => {
+    if (isCompleted) {
+      navigate(`/handbook-uploads/${upload.id}`)
+    }
+  }
+
   return (
     <Box
+      as={isCompleted ? 'button' : 'div'}
+      type={isCompleted ? 'button' : undefined}
+      onClick={isCompleted ? handleClick : undefined}
+      width="100%"
+      textAlign="left"
+      bg="transparent"
+      border="none"
+      px={isCompleted ? '8px' : '0'}
+      mx={isCompleted ? '-8px' : '0'}
       py="14px"
       borderTop={first ? 'none' : '1px solid #EBEFF4'}
+      borderRadius={isCompleted ? '4px' : '0'}
       display="flex"
       alignItems="flex-start"
       justifyContent="space-between"
       flexWrap="wrap"
       gap="8px"
+      cursor={isCompleted ? 'pointer' : 'default'}
+      transition="background 0.15s"
+      _hover={isCompleted ? { bg: '#F7F9FB' } : undefined}
     >
       <Box>
         <Box display="flex" alignItems="center" gap="8px" flexWrap="wrap">
@@ -77,9 +99,12 @@ function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }
           Uploaded by {upload.uploadedBy.fullName}
         </Text>
       </Box>
-      <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
-        {formatDate(upload.createdAt)}
-      </Text>
+      <Box display="flex" alignItems="center" gap="8px">
+        <Text fontSize="12px" color="#737685" whiteSpace="nowrap">
+          {formatDate(upload.createdAt)}
+        </Text>
+        {isCompleted && <ChevronRight size={16} color="#737685" />}
+      </Box>
     </Box>
   )
 }

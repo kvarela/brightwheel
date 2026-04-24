@@ -2,6 +2,7 @@ import { Body, Controller, Get, Headers, Param, ParseUUIDPipe, Post, Request, Us
 import {
   HandbookProcessResponseDto,
   HandbookSignedUploadResponseDto,
+  HandbookUploadDetailDto,
   HandbookUploadStatusResponseDto,
 } from '@brightwheel/shared'
 import { CreateSignedUploadDto } from './dto/create-signed-upload.dto'
@@ -49,5 +50,14 @@ export class HandbookController {
   @UseGuards(JwtAuthGuard)
   getUploads(@Request() req: { user: StaffUser }) {
     return this.handbookService.findBySchool(req.user.schoolId)
+  }
+
+  @Get('uploads/:uploadId/detail')
+  @UseGuards(JwtAuthGuard)
+  getUploadDetail(
+    @Request() req: { user: StaffUser },
+    @Param('uploadId', new ParseUUIDPipe()) uploadId: string,
+  ): Promise<HandbookUploadDetailDto> {
+    return this.handbookService.findUploadDetail(req.user.schoolId, uploadId)
   }
 }
