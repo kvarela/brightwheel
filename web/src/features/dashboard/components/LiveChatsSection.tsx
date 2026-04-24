@@ -130,11 +130,28 @@ export function LiveChatsSection({ fullPage }: { fullPage?: boolean }) {
           {sessions.map((session, idx) => (
             <Box
               key={session.id}
+              as="button"
+              type="button"
+              onClick={() => navigate(`/dashboard/chats/${session.id}`)}
+              textAlign="left"
+              width="100%"
+              bg="transparent"
+              border="none"
+              cursor="pointer"
               py="14px"
+              px="8px"
+              mx="-8px"
               borderTop={idx === 0 ? 'none' : '1px solid #EBEFF4'}
               display="flex"
               flexDirection="column"
               gap="8px"
+              borderRadius="2px"
+              transition="background 0.15s"
+              _hover={{ bg: '#F7F9FB' }}
+              _focusVisible={{
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(84,99,214,0.15)',
+              }}
             >
               <Box
                 display="flex"
