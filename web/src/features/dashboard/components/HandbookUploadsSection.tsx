@@ -1,4 +1,6 @@
 import { Box, Badge, Text, Spinner, Stack } from '@chakra-ui/react'
+import { Maximize2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useHandbookUploads } from '../hooks/useHandbookUploads'
 import { HandbookUpload, HandbookUploadStatus } from '../types/HandbookUpload'
 
@@ -82,20 +84,43 @@ function UploadRow({ upload, first }: { upload: HandbookUpload; first: boolean }
   )
 }
 
-export function HandbookUploadsSection() {
+export function HandbookUploadsSection({ fullPage }: { fullPage?: boolean }) {
+  const navigate = useNavigate()
   const { data: uploads, isLoading, isError } = useHandbookUploads()
 
   return (
     <Box bg="white" borderRadius="2px" border="1px solid #EBEFF4" p="24px">
-      <Text
-        fontSize="22px"
-        fontWeight={600}
-        color="#18181D"
-        mb="16px"
-        fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
-      >
-        Handbook Uploads
-      </Text>
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb="16px">
+        <Text
+          fontSize="22px"
+          fontWeight={600}
+          color="#18181D"
+          fontFamily='"AvenirNext", "Helvetica Neue", helvetica, arial, sans-serif'
+        >
+          Handbook Uploads
+        </Text>
+        {!fullPage && (
+          <Box
+            as="button"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            width="32px"
+            height="32px"
+            borderRadius="2px"
+            border="none"
+            bg="transparent"
+            cursor="pointer"
+            color="#737685"
+            _hover={{ bg: '#F7F9FB', color: '#5463D6' }}
+            transition="all 0.2s"
+            onClick={() => navigate('/handbook')}
+            title="Open full view"
+          >
+            <Maximize2 size={16} />
+          </Box>
+        )}
+      </Box>
 
       {isLoading && (
         <Box display="flex" alignItems="center" gap="8px" color="#737685">
