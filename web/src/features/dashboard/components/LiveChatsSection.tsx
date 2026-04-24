@@ -131,7 +131,6 @@ export function LiveChatsSection({ fullPage }: { fullPage?: boolean }) {
             <Box
               key={session.id}
               as="button"
-              type="button"
               onClick={() => navigate(`/dashboard/chats/${session.id}`)}
               textAlign="left"
               width="100%"

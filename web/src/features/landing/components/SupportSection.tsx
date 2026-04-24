@@ -10,7 +10,7 @@ const SUPPORT_FEATURES = [
   {
     icon: '🚀',
     title: 'Customized onboarding',
-    description: "We set up your knowledge base and configure your AI in your first session.",
+    description: 'We set up your knowledge base and configure your AI in your first session.',
   },
   {
     icon: '👤',
@@ -146,16 +146,19 @@ export function SupportSection() {
                         justifyContent="center"
                         flexShrink={0}
                       >
-                        <Text color="white" fontSize="11px" fontWeight={700}>✓</Text>
+                        <Text color="white" fontSize="11px" fontWeight={700}>
+                          ✓
+                        </Text>
                       </Box>
-                      <Text fontSize="14px" color="rgba(255,255,255,0.85)">{item}</Text>
+                      <Text fontSize="14px" color="rgba(255,255,255,0.85)">
+                        {item}
+                      </Text>
                     </Flex>
                   ))}
                 </VStack>
 
                 <Box
                   as="button"
-                  type="button"
                   onClick={openRegister}
                   display="inline-flex"
                   alignItems="center"
