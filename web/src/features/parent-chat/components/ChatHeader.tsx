@@ -1,4 +1,5 @@
 import { Box, Flex, Text } from '@chakra-ui/react'
+import { X } from 'lucide-react'
 import { Link as RouterLink } from 'react-router-dom'
 
 interface ChatHeaderProps {
@@ -50,15 +51,19 @@ export function ChatHeader({ schoolName }: ChatHeaderProps) {
           </Flex>
         </Box>
       </Flex>
-      <RouterLink to="/" style={{ textDecoration: 'none' }}>
-        <Text
-          fontSize="13px"
+      <RouterLink to="/" aria-label="Leave chat" style={{ textDecoration: 'none' }}>
+        <Flex
+          align="center"
+          justify="center"
+          w="32px"
+          h="32px"
+          borderRadius="2px"
           color="#5463D6"
-          fontWeight={600}
-          _hover={{ textDecoration: 'underline' }}
+          _hover={{ bg: '#EBEFF4' }}
+          transition="background 0.15s ease"
         >
-          Leave chat
-        </Text>
+          <X size={20} strokeWidth={2} />
+        </Flex>
       </RouterLink>
     </Flex>
   )
