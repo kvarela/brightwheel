@@ -315,7 +315,7 @@ describe('ChatService', () => {
       expect(reloaded.assignedStaffId).toBe(staff.id)
     })
 
-    it('creates a KB entry from parent question + staff reply on first reply', async () => {
+    it('does not create a KB entry on staff reply alone (KB is created on resolve)', async () => {
       const school = await buildSchool(0.8)
       const staff = await staffRepo.save({
         schoolId: school.id,
@@ -329,88 +329,15 @@ describe('ChatService', () => {
         modelConfidence: 0.1,
       })
       const session = await service.createSession(school.id)
-      await service.handleParentMessage(
-        session.sessionToken,
-        'do you do overnight care?',
-      )
+      await service.handleParentMessage(session.sessionToken, 'do you do overnight care?')
 
       await service.postStaffReply(
         session.id,
         { sub: staff.id, schoolId: school.id },
-        'No, we close at 6pm — we do not offer overnight care.',
+        'No, we close at 6pm.',
       )
 
-      const entries = await kbRepo.find({
-        where: { sourceChatSessionId: session.id },
-      })
-      expect(entries).toHaveLength(1)
-      expect(entries[0].question).toBe('do you do overnight care?')
-      expect(entries[0].answer).toBe(
-        'No, we close at 6pm — we do not offer overnight care.',
-      )
-      expect(entries[0].source).toBe(KnowledgeBaseSource.EscalationLearning)
-      expect(entries[0].schoolId).toBe(school.id)
-      expect(entries[0].isActive).toBe(true)
-    })
-
-    it('does not create a duplicate KB entry on subsequent staff replies', async () => {
-      const school = await buildSchool(0.8)
-      const staff = await staffRepo.save({
-        schoolId: school.id,
-        email: 's@acme.com',
-        passwordHash: 'x',
-        fullName: 'Jordan',
-        role: StaffRole.Admin,
-      })
-      aiGenerateResponse.mockResolvedValue({
-        answer: 'unclear',
-        modelConfidence: 0.1,
-      })
-      const session = await service.createSession(school.id)
-      await service.handleParentMessage(session.sessionToken, 'original question')
-
-      await service.postStaffReply(
-        session.id,
-        { sub: staff.id, schoolId: school.id },
-        'first reply',
-      )
-      await service.postStaffReply(
-        session.id,
-        { sub: staff.id, schoolId: school.id },
-        'follow-up reply',
-      )
-
-      const entries = await kbRepo.find({
-        where: { sourceChatSessionId: session.id },
-      })
-      expect(entries).toHaveLength(1)
-      expect(entries[0].answer).toBe('first reply')
-    })
-
-    it('does not create a KB entry when the session was not escalated', async () => {
-      const school = await buildSchool(0.8)
-      const staff = await staffRepo.save({
-        schoolId: school.id,
-        email: 's@acme.com',
-        passwordHash: 'x',
-        fullName: 'Jordan',
-        role: StaffRole.Admin,
-      })
-      const session = await sessionRepo.save({
-        schoolId: school.id,
-        sessionToken: 'non-escalated',
-        status: ChatSessionStatus.Active,
-      })
-
-      await service.postStaffReply(
-        session.id,
-        { sub: staff.id, schoolId: school.id },
-        'hi there',
-      )
-
-      const entries = await kbRepo.find({
-        where: { sourceChatSessionId: session.id },
-      })
+      const entries = await kbRepo.find({ where: { sourceChatSessionId: session.id } })
       expect(entries).toHaveLength(0)
     })
   })
@@ -440,6 +367,147 @@ describe('ChatService', () => {
 
       expect(result.inboxState).toBe(InboxState.Resolved)
       expect(result.resolvedAt).not.toBeNull()
+    })
+
+    it('creates a KB entry from the escalation Q + latest staff answer on resolve', async () => {
+      const school = await buildSchool(0.8)
+      const staff = await staffRepo.save({
+        schoolId: school.id,
+        email: 's@acme.com',
+        passwordHash: 'x',
+        fullName: 'Jordan',
+        role: StaffRole.Admin,
+      })
+      aiGenerateResponse.mockResolvedValue({
+        answer: 'unclear',
+        modelConfidence: 0.1,
+      })
+      const session = await service.createSession(school.id)
+      await service.handleParentMessage(
+        session.sessionToken,
+        'do you do overnight care?',
+      )
+      await service.postStaffReply(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        'Looking into it.',
+      )
+      await service.postStaffReply(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        'No, we close at 6pm — we do not offer overnight care.',
+      )
+
+      await service.updateInboxState(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        InboxState.Resolved,
+      )
+
+      const entries = await kbRepo.find({ where: { sourceChatSessionId: session.id } })
+      expect(entries).toHaveLength(1)
+      expect(entries[0].question).toBe('do you do overnight care?')
+      expect(entries[0].answer).toBe(
+        'No, we close at 6pm — we do not offer overnight care.',
+      )
+      expect(entries[0].source).toBe(KnowledgeBaseSource.EscalationLearning)
+      expect(entries[0].schoolId).toBe(school.id)
+      expect(entries[0].isActive).toBe(true)
+    })
+
+    it('does not create a duplicate KB entry if resolve is called twice', async () => {
+      const school = await buildSchool(0.8)
+      const staff = await staffRepo.save({
+        schoolId: school.id,
+        email: 's@acme.com',
+        passwordHash: 'x',
+        fullName: 'Jordan',
+        role: StaffRole.Admin,
+      })
+      aiGenerateResponse.mockResolvedValue({
+        answer: 'unclear',
+        modelConfidence: 0.1,
+      })
+      const session = await service.createSession(school.id)
+      await service.handleParentMessage(session.sessionToken, 'original q')
+      await service.postStaffReply(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        'first answer',
+      )
+
+      await service.updateInboxState(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        InboxState.Resolved,
+      )
+      await service.updateInboxState(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        InboxState.Resolved,
+      )
+
+      const entries = await kbRepo.find({ where: { sourceChatSessionId: session.id } })
+      expect(entries).toHaveLength(1)
+      expect(entries[0].answer).toBe('first answer')
+    })
+
+    it('does not create a KB entry on resolve when no staff ever replied', async () => {
+      const school = await buildSchool(0.8)
+      const staff = await staffRepo.save({
+        schoolId: school.id,
+        email: 's@acme.com',
+        passwordHash: 'x',
+        fullName: 'Jordan',
+        role: StaffRole.Admin,
+      })
+      aiGenerateResponse.mockResolvedValue({
+        answer: 'unclear',
+        modelConfidence: 0.1,
+      })
+      const session = await service.createSession(school.id)
+      await service.handleParentMessage(session.sessionToken, 'question')
+
+      await service.updateInboxState(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        InboxState.Resolved,
+      )
+
+      const entries = await kbRepo.find({ where: { sourceChatSessionId: session.id } })
+      expect(entries).toHaveLength(0)
+    })
+
+    it('does not create a KB entry on resolve when session was never escalated', async () => {
+      const school = await buildSchool(0.8)
+      const staff = await staffRepo.save({
+        schoolId: school.id,
+        email: 's@acme.com',
+        passwordHash: 'x',
+        fullName: 'Jordan',
+        role: StaffRole.Admin,
+      })
+      const session = await sessionRepo.save({
+        schoolId: school.id,
+        sessionToken: 'non-escalated',
+        status: ChatSessionStatus.Active,
+        inboxState: InboxState.InProgress,
+      })
+      await messageRepo.save({
+        chatSessionId: session.id,
+        role: MessageRole.Staff,
+        content: 'hi there',
+        sentByStaffId: staff.id,
+      })
+
+      await service.updateInboxState(
+        session.id,
+        { sub: staff.id, schoolId: school.id },
+        InboxState.Resolved,
+      )
+
+      const entries = await kbRepo.find({ where: { sourceChatSessionId: session.id } })
+      expect(entries).toHaveLength(0)
     })
   })
 })

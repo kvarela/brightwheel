@@ -230,12 +230,6 @@ export class ChatService {
     if (!session) throw new NotFoundException('Conversation not found')
     if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
 
-    const existingStaffReply = await this.messageRepository.findOne({
-      where: { chatSessionId: session.id, role: MessageRole.Staff },
-      select: ['id'],
-    })
-    const wasFirstStaffReply = !existingStaffReply
-
     if (session.inboxState === InboxState.NeedsAttention || !session.inboxState) {
       session.inboxState = InboxState.InProgress
       session.assignedStaffId = staff.sub
@@ -261,11 +255,36 @@ export class ChatService {
       message: messageDto,
     })
 
-    if (wasFirstStaffReply) {
+    return messageDto
+  }
+
+  async updateInboxState(
+    conversationId: string,
+    staff: { sub: string; schoolId: string },
+    inboxState: InboxState,
+  ): Promise<ChatSessionDto> {
+    const session = await this.sessionRepository.findOne({
+      where: { id: conversationId },
+    })
+    if (!session) throw new NotFoundException('Conversation not found')
+    if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
+
+    const wasResolved = session.inboxState === InboxState.Resolved
+
+    session.inboxState = inboxState
+    if (inboxState === InboxState.Resolved) {
+      session.status = ChatSessionStatus.Resolved
+      session.resolvedAt = new Date()
+    } else if (inboxState === InboxState.InProgress && !session.assignedStaffId) {
+      session.assignedStaffId = staff.sub
+    }
+    await this.sessionRepository.save(session)
+
+    if (inboxState === InboxState.Resolved && !wasResolved) {
       try {
-        await this.addEscalationAnswerToKnowledgeBase(session, content)
+        await this.addEscalationAnswerToKnowledgeBase(session)
       } catch (err) {
-        // KB promotion is best-effort — never fail a staff reply because of it.
+        // KB promotion is best-effort — never fail a resolve because of it.
         this.logger.error(
           `Failed to add escalation answer to KB for session ${session.id}`,
           err as Error,
@@ -273,16 +292,14 @@ export class ChatService {
       }
     }
 
-    return messageDto
+    return this.toSessionDto(session)
   }
 
-  // When staff sends the first reply to an escalated conversation, promote the
-  // (parent question → staff answer) pair into the school's knowledge base so
-  // the AI can handle the same question next time.
-  private async addEscalationAnswerToKnowledgeBase(
-    session: ChatSession,
-    staffReply: string,
-  ): Promise<void> {
+  // When an escalated conversation is resolved, promote the (parent question →
+  // staff answer) pair into the school's knowledge base so the AI can handle
+  // the same question next time. Uses the parent message that triggered the
+  // escalation and the most recent staff reply as the authoritative answer.
+  private async addEscalationAnswerToKnowledgeBase(session: ChatSession): Promise<void> {
     const trigger = await this.messageRepository.findOne({
       where: {
         chatSessionId: session.id,
@@ -302,34 +319,18 @@ export class ChatService {
       .getOne()
     if (!parentQuestion) return
 
+    const staffAnswer = await this.messageRepository.findOne({
+      where: { chatSessionId: session.id, role: MessageRole.Staff },
+      order: { createdAt: 'DESC' },
+    })
+    if (!staffAnswer) return
+
     await this.kbService.createFromEscalation({
       schoolId: session.schoolId,
       chatSessionId: session.id,
       question: parentQuestion.content,
-      answer: staffReply,
+      answer: staffAnswer.content,
     })
-  }
-
-  async updateInboxState(
-    conversationId: string,
-    staff: { sub: string; schoolId: string },
-    inboxState: InboxState,
-  ): Promise<ChatSessionDto> {
-    const session = await this.sessionRepository.findOne({
-      where: { id: conversationId },
-    })
-    if (!session) throw new NotFoundException('Conversation not found')
-    if (session.schoolId !== staff.schoolId) throw new ForbiddenException()
-
-    session.inboxState = inboxState
-    if (inboxState === InboxState.Resolved) {
-      session.status = ChatSessionStatus.Resolved
-      session.resolvedAt = new Date()
-    } else if (inboxState === InboxState.InProgress && !session.assignedStaffId) {
-      session.assignedStaffId = staff.sub
-    }
-    await this.sessionRepository.save(session)
-    return this.toSessionDto(session)
   }
 
   private async loadMessagesForSession(sessionId: string): Promise<ChatMessageDto[]> {
