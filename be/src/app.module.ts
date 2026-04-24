@@ -11,7 +11,6 @@ import { HandbookModule } from './modules/handbook/handbook.module'
 import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.module'
 import { ChatModule } from './modules/chat/chat.module'
 import { NotificationModule } from './modules/notification/notification.module'
-import { AuthModule } from './modules/auth/auth.module'
 
 @Module({
   imports: [

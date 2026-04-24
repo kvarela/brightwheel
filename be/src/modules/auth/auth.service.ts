@@ -11,7 +11,7 @@ import * as bcrypt from 'bcryptjs'
 import { StaffUser } from '../staff-user/entities/staff-user.entity'
 import { JwtPayload } from './strategies/jwt.strategy'
 import { School } from '../school/entities/school.entity'
-import { StaffRole } from '../../../../packages/shared/src'
+import { StaffRole } from '@brightwheel/shared'
 
 export interface AuthResponse {
   accessToken: string
@@ -59,6 +59,7 @@ export class AuthService {
 
     const payload: JwtPayload = {
       sub: staffUser.id,
+      email: staffUser.email,
       schoolId: staffUser.schoolId,
       role: staffUser.role,
     }
@@ -130,6 +131,7 @@ export class AuthService {
   private sign(staffUser: StaffUser): string {
     const payload: JwtPayload = {
       sub: staffUser.id,
+      email: staffUser.email,
       schoolId: staffUser.schoolId,
       role: staffUser.role,
     }

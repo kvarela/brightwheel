@@ -5,6 +5,7 @@ import { HandbookUploadsSection } from './components/HandbookUploadsSection'
 import { KnowledgeBaseSection } from './components/KnowledgeBaseSection'
 import { useCurrentUser } from './hooks/useCurrentUser'
 import { useInboxStore } from '../../store/inboxStore'
+import { useAuthStore } from '../../store/authStore'
 
 function getInitials(fullName: string): string {
   const parts = fullName.trim().split(/\s+/)
@@ -49,11 +50,10 @@ export function DashboardPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [menuOpen, bellOpen])
 
+  const { clearToken } = useAuthStore()
+
   function handleLogout() {
-    localStorage.clear()
-    document.cookie.split(';').forEach((c) => {
-      document.cookie = c.trim().split('=')[0] + '=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/'
-    })
+    clearToken()
     window.location.href = '/'
   }
 

@@ -9,7 +9,4 @@ export default {
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   maxWorkers: 1,
-  moduleNameMapper: {
-    '^@brightwheel/shared$': '<rootDir>/../../packages/shared/src',
-  },
 }
