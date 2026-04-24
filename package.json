@@ -9,7 +9,11 @@
     "test": "yarn workspace @brightwheel/be test",
     "test:e2e": "yarn workspace @brightwheel/be test:e2e",
     "lint": "yarn workspace @brightwheel/web lint && yarn workspace @brightwheel/be lint",
-    "typecheck": "yarn workspace @brightwheel/web typecheck && yarn workspace @brightwheel/be typecheck"
+    "typecheck": "yarn workspace @brightwheel/web typecheck && yarn workspace @brightwheel/be typecheck",
+    "migration:run": "yarn workspace @brightwheel/be migration:run",
+    "migration:revert": "yarn workspace @brightwheel/be migration:revert",
+    "migration:generate": "yarn workspace @brightwheel/be migration:generate",
+    "migration:create": "yarn workspace @brightwheel/be migration:create"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
