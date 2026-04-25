@@ -14,6 +14,7 @@ import { ObjectStorageService } from './services/object-storage.service'
 import { HandbookTextExtractorService } from './services/handbook-text-extractor.service'
 import { HandbookParserService } from './services/handbook-parser.service'
 import { AuthModule } from '../auth/auth.module'
+import { AiModule } from '../ai/ai.module'
 import { HandbookService } from './handbook.service'
 
 @Module({
@@ -28,6 +29,7 @@ import { HandbookService } from './handbook.service'
       StaffUser,
     ]),
     AuthModule,
+    AiModule,
   ],
   controllers: [HandbookController],
   providers: [

@@ -23,6 +23,7 @@ import { HandbookRequestContextService } from './handbook-request-context.servic
 import { ObjectStorageService } from './object-storage.service'
 import { HandbookTextExtractorService } from './handbook-text-extractor.service'
 import { HandbookParserService } from './handbook-parser.service'
+import { AiService } from '../../ai/ai.service'
 import {
   createTestSchool,
   createTestStaffUser,
@@ -43,6 +44,7 @@ describe('HandbookUploadService', () => {
   let storageService: jest.Mocked<ObjectStorageService>
   let extractorService: jest.Mocked<HandbookTextExtractorService>
   let parserService: jest.Mocked<HandbookParserService>
+  let aiService: jest.Mocked<AiService>
   let school: School
   let staff: StaffUser
 
@@ -70,6 +72,10 @@ describe('HandbookUploadService', () => {
       extractInquiries: jest.fn(),
     } as unknown as jest.Mocked<HandbookParserService>
 
+    aiService = {
+      generateEmbedding: jest.fn().mockResolvedValue(null),
+    } as unknown as jest.Mocked<AiService>
+
     const moduleRef = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true }),
@@ -89,6 +95,7 @@ describe('HandbookUploadService', () => {
         { provide: ObjectStorageService, useValue: storageService },
         { provide: HandbookTextExtractorService, useValue: extractorService },
         { provide: HandbookParserService, useValue: parserService },
+        { provide: AiService, useValue: aiService },
       ],
     }).compile()
 
@@ -103,6 +110,7 @@ describe('HandbookUploadService', () => {
     school = await createTestSchool(db)
     staff = await createTestStaffUser(db, school.id)
     jest.clearAllMocks()
+    aiService.generateEmbedding.mockResolvedValue(null)
   })
 
   afterAll(async () => {
@@ -207,6 +215,59 @@ describe('HandbookUploadService', () => {
         .getRepository(HandbookVersion)
         .findOneOrFail({ where: { id: result.versionId } })
       expect(version.versionNumber).toBe(1)
+    })
+
+    it('generates and persists an embedding for each extracted inquiry so handbook entries are searchable via vector similarity', async () => {
+      const upload = await seedPendingUpload()
+      storageService.downloadObject.mockResolvedValue(Buffer.from('handbook bytes'))
+      extractorService.extractText.mockResolvedValue(
+        'Welcome to our school. Long enough body text to satisfy the parser.',
+      )
+      const inquiries = [
+        makeInquiry({ question: 'Hours?', answer: '7am-6pm.' }),
+        makeInquiry({ question: 'Tuition?', answer: '$1500/mo.' }),
+      ]
+      parserService.extractInquiries.mockResolvedValue(inquiries)
+
+      const firstEmbedding = Array.from({ length: 1536 }, (_, i) => i / 1536)
+      const secondEmbedding = Array.from({ length: 1536 }, (_, i) => (i + 1) / 1536)
+      aiService.generateEmbedding
+        .mockResolvedValueOnce(firstEmbedding)
+        .mockResolvedValueOnce(secondEmbedding)
+
+      await uploadService.processUpload(upload.id)
+
+      expect(aiService.generateEmbedding).toHaveBeenCalledTimes(2)
+      expect(aiService.generateEmbedding).toHaveBeenNthCalledWith(1, 'Hours? 7am-6pm.')
+      expect(aiService.generateEmbedding).toHaveBeenNthCalledWith(2, 'Tuition? $1500/mo.')
+
+      const kbEntries = await db
+        .getRepository(KnowledgeBaseEntry)
+        .find({ where: { schoolId: school.id }, order: { createdAt: 'ASC' } })
+      expect(kbEntries).toHaveLength(2)
+      expect(kbEntries[0].embedding).not.toBeNull()
+      expect(kbEntries[0].embedding).toHaveLength(1536)
+      expect(kbEntries[1].embedding).not.toBeNull()
+      expect(kbEntries[1].embedding).toHaveLength(1536)
+    })
+
+    it('still persists the entry when embedding generation returns null (e.g. provider unavailable)', async () => {
+      const upload = await seedPendingUpload()
+      storageService.downloadObject.mockResolvedValue(Buffer.from('handbook bytes'))
+      extractorService.extractText.mockResolvedValue(
+        'Welcome to our school. Long enough body text to satisfy the parser.',
+      )
+      parserService.extractInquiries.mockResolvedValue([makeInquiry()])
+      aiService.generateEmbedding.mockResolvedValue(null)
+
+      const result = await uploadService.processUpload(upload.id)
+      expect(result.status).toBe(HandbookUploadStatus.Completed)
+
+      const kbEntries = await db
+        .getRepository(KnowledgeBaseEntry)
+        .find({ where: { schoolId: school.id } })
+      expect(kbEntries).toHaveLength(1)
+      expect(kbEntries[0].embedding).toBeNull()
     })
 
     it('increments the version number for subsequent uploads within a school', async () => {
