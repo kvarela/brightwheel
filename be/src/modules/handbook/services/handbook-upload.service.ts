@@ -22,6 +22,7 @@ import { HandbookUpload } from '../entities/handbook-upload.entity'
 import { HandbookVersion } from '../entities/handbook-version.entity'
 import { HandbookDiffEntry } from '../entities/handbook-diff-entry.entity'
 import { KnowledgeBaseEntry } from '../../knowledge-base/entities/knowledge-base-entry.entity'
+import { AiService } from '../../ai/ai.service'
 import { ObjectStorageService } from './object-storage.service'
 import { HandbookTextExtractorService } from './handbook-text-extractor.service'
 import { HandbookParserService } from './handbook-parser.service'
@@ -50,6 +51,7 @@ export class HandbookUploadService {
     private readonly storageService: ObjectStorageService,
     private readonly textExtractor: HandbookTextExtractorService,
     private readonly parserService: HandbookParserService,
+    private readonly aiService: AiService,
   ) {}
 
   async createSignedUpload(
@@ -174,13 +176,22 @@ export class HandbookUploadService {
   ): Promise<void> {
     if (inquiries.length === 0) return
 
-    const kbEntries = inquiries.map((inquiry) =>
+    // Generate embeddings up front so handbook entries are immediately retrievable
+    // by the parent-query vector search (which filters out rows where embedding IS NULL).
+    const embeddings = await Promise.all(
+      inquiries.map((inquiry) =>
+        this.aiService.generateEmbedding(`${inquiry.question} ${inquiry.answer}`),
+      ),
+    )
+
+    const kbEntries = inquiries.map((inquiry, index) =>
       this.knowledgeBaseRepository.create({
         schoolId,
         question: inquiry.question,
         answer: inquiry.answer,
         source: KnowledgeBaseSource.HandbookExtraction,
         handbookVersionId,
+        embedding: embeddings[index] ?? null,
         isActive: true,
       }),
     )
