@@ -1,12 +1,10 @@
 import { useCallback, useState } from 'react'
 import { Box, Flex, Text, VStack } from '@chakra-ui/react'
-import { SUPPORTED_EXTENSIONS } from '../utils/classifyHandbookFile'
+import { SUPPORTED_FILE_PICKER_ACCEPT } from '../utils/classifyHandbookFile'
 
 interface HandbookDropzoneProps {
   onFileSelected: (file: File) => void
 }
-
-const ACCEPT = SUPPORTED_EXTENSIONS.map((ext) => `.${ext}`).join(',')
 
 export function HandbookDropzone({ onFileSelected }: HandbookDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false)
@@ -46,7 +44,7 @@ export function HandbookDropzone({ onFileSelected }: HandbookDropzoneProps) {
         <input
           id="handbook-file-input"
           type="file"
-          accept={ACCEPT}
+          accept={SUPPORTED_FILE_PICKER_ACCEPT}
           style={{ display: 'none' }}
           onChange={(e) => {
             handleFile(e.target.files?.[0])
