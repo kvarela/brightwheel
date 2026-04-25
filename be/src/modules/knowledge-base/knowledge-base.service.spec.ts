@@ -1,9 +1,11 @@
 import { INestApplication } from '@nestjs/common'
 import { DataSource, Repository } from 'typeorm'
 import { getRepositoryToken } from '@nestjs/typeorm'
-import { KnowledgeBaseSource } from '@brightwheel/shared'
+import { KnowledgeBaseSource, MessageRole } from '@brightwheel/shared'
 import { createTestApp } from '../../../test/helpers/app.helper'
 import { truncateAll } from '../../../test/helpers/db.helper'
+import { ChatSession } from '../chat/entities/chat-session.entity'
+import { Message } from '../chat/entities/message.entity'
 import { School } from '../school/entities/school.entity'
 import { KnowledgeBaseEntry } from './entities/knowledge-base-entry.entity'
 import { KnowledgeBaseService } from './knowledge-base.service'
@@ -14,6 +16,8 @@ describe('KnowledgeBaseService', () => {
   let service: KnowledgeBaseService
   let schoolRepo: Repository<School>
   let kbRepo: Repository<KnowledgeBaseEntry>
+  let sessionRepo: Repository<ChatSession>
+  let messageRepo: Repository<Message>
 
   beforeAll(async () => {
     const testApp = await createTestApp()
@@ -22,6 +26,8 @@ describe('KnowledgeBaseService', () => {
     service = app.get(KnowledgeBaseService)
     schoolRepo = app.get(getRepositoryToken(School))
     kbRepo = app.get(getRepositoryToken(KnowledgeBaseEntry))
+    sessionRepo = app.get(getRepositoryToken(ChatSession))
+    messageRepo = app.get(getRepositoryToken(Message))
   }, 30000)
 
   afterAll(async () => {
@@ -229,6 +235,46 @@ describe('KnowledgeBaseService', () => {
       const result = await service.clearAllForSchool(school.id)
 
       expect(result.deletedCount).toBe(0)
+    })
+
+    it('clears message_knowledge_base_entry rows that reference the deleted entries', async () => {
+      const school = await schoolRepo.save({
+        name: 'Acme',
+        slug: 'acme',
+        isActive: true,
+      })
+      const entry = await kbRepo.save({
+        schoolId: school.id,
+        question: 'Q',
+        answer: 'A',
+        source: KnowledgeBaseSource.Manual,
+      })
+      const session = await sessionRepo.save({
+        schoolId: school.id,
+        sessionToken: 'token-clear',
+      })
+      const message = await messageRepo.save({
+        chatSessionId: session.id,
+        role: MessageRole.Ai,
+        content: 'Hello',
+      })
+      await db.query(
+        `INSERT INTO "message_knowledge_base_entry"
+           ("messageId", "knowledgeBaseEntryId", "similarityScore")
+         VALUES ($1, $2, $3)`,
+        [message.id, entry.id, 0.9],
+      )
+
+      const result = await service.clearAllForSchool(school.id)
+
+      expect(result.deletedCount).toBe(1)
+      const remaining = await kbRepo.find({ where: { schoolId: school.id } })
+      expect(remaining).toEqual([])
+      const joinRows = await db.query(
+        `SELECT 1 FROM "message_knowledge_base_entry" WHERE "messageId" = $1`,
+        [message.id],
+      )
+      expect(joinRows).toEqual([])
     })
   })
 })
