@@ -181,8 +181,16 @@ export class KnowledgeBaseService implements OnModuleInit {
   }
 
   async clearAllForSchool(schoolId: string): Promise<{ deletedCount: number }> {
-    const result = await this.kbRepository.delete({ schoolId })
-    return { deletedCount: result.affected ?? 0 }
+    return this.kbRepository.manager.transaction(async (manager) => {
+      await manager.query(
+        `DELETE FROM "message_knowledge_base_entry" AS mkbe
+         USING "knowledge_base_entry" AS kb
+         WHERE mkbe."knowledgeBaseEntryId" = kb."id" AND kb."schoolId" = $1`,
+        [schoolId],
+      )
+      const result = await manager.delete(KnowledgeBaseEntry, { schoolId })
+      return { deletedCount: result.affected ?? 0 }
+    })
   }
 }
 
